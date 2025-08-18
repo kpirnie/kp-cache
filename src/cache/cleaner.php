@@ -20,7 +20,7 @@ if (defined('KPT_CACHE_CLEANER_LOADED')) {
 define('KPT_CACHE_CLEANER_LOADED', true);
 
 // no direct access via web, but allow CLI
-if ( ! defined( 'KPT_PATH' ) && php_sapi_name( ) !== 'cli' ) {
+if ( php_sapi_name( ) !== 'cli' ) {
     die( 'Direct Access is not allowed!' );
 }
 

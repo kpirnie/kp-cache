@@ -11,9 +11,6 @@
 // throw it under my namespace
 namespace KPT;
 
-// no direct access
-defined( 'KPT_PATH' ) || die( 'Direct Access is not allowed!' );
-
 // make sure the trait doesn't already exist
 if ( ! trait_exists( 'Cache_YAC' ) ) {
 

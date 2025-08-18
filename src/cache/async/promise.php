@@ -15,9 +15,6 @@
 // throw it under my namespace
 namespace KPT;
 
-// no direct access
-defined( 'KPT_PATH' ) || die( 'Direct Access is not allowed!' );
-
 // make sure the class doesn't exist
 if ( ! class_exists( 'Cache_Promise' ) ) {
 
