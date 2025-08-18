@@ -367,7 +367,7 @@ if (! trait_exists('CacheMemcached')) {
                 }
 
                 // delete the item
-                $retult = $connection -> delete($_key);
+                $result = $connection -> delete($_key);
 
                 // Consider it successful if key was deleted OR if key didn't exist
                 if ($result || $connection -> getResultCode() === \Memcached::RES_NOTFOUND) {
