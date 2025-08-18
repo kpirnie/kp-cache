@@ -51,8 +51,8 @@
         }
     },
     "scripts": {
-        "test": "phpunit",
-        "test-coverage": "phpunit --coverage-html coverage",
+        "test": "./vendor/bin/phpunit",
+        "test-coverage": "./vendor/bin/phpunit --coverage-html coverage",
         "cs-check": "phpcs -n --standard=PSR12 ./src",
         "cs-fix": "phpcbf src --standard=PSR12"
     },
