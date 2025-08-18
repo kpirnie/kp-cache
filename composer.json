@@ -42,8 +42,8 @@
         "psr-4": {
             "KPT\\": "src/"
         },
-        "files": [
-            "src/cache.php"
+        "classmap": [
+            "src/"
         ]
     },
     "autoload-dev": {
