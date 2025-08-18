@@ -1020,8 +1020,17 @@ if (! class_exists('CacheTierManager')) {
                     return false;
                 }
 
+                // get mysql configuration
+                $config = CacheConfig::get('mysql');
+                
+                // build database settings object if provided in config
+                $db_settings = null;
+                if (isset($config['db_settings']) && is_array($config['db_settings'])) {
+                    $db_settings = (object) $config['db_settings'];
+                }
+
                 // Try to get MySQL database instance
-                $test_db = new Database();
+                $test_db = new Database($db_settings);
                 if (! $test_db) {
                     return false;
                 }

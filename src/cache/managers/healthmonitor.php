@@ -645,7 +645,16 @@ if (! class_exists('CacheHealthMonitor')) {
                     return $result;
                 }
 
-                $db = new Database();
+                // get mysql configuration
+                $config = CacheConfig::get('mysql');
+                
+                // build database settings object if provided in config
+                $db_settings = null;
+                if (isset($config['db_settings']) && is_array($config['db_settings'])) {
+                    $db_settings = (object) $config['db_settings'];
+                }
+
+                $db = new Database($db_settings);
                 $test_result = $db->raw('SELECT 1 as test');
 
                 if (! empty($test_result)) {
