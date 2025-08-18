@@ -25,6 +25,12 @@ if (php_sapi_name() !== 'cli') {
     die('Direct Access is not allowed!');
 }
 
+// Get the absolute path to src directory
+$srcRoot = dirname(__DIR__);
+
+// include the autoloader
+include_once $srcRoot . '/../vendor/autoload.php';
+
 // make sure the class doesn't exist
 if (! class_exists('CacheCleaner')) {
 
@@ -66,7 +72,7 @@ if (! class_exists('CacheCleaner')) {
                     Cache::close();
 
                     // debug logging
-                    Logger::debug("Cleared All Available Caches", ['tiers' => CacheTierManager::getAvailableTiers()]);
+                    //Logger::debug("Cleared All Available Caches", ['tiers' => CacheTierManager::getAvailableTiers()]);
                 }
 
                 // if we have the cleanup
@@ -75,7 +81,7 @@ if (! class_exists('CacheCleaner')) {
                     Cache::cleanup();
 
                     // debug logging
-                    Logger::debug("Cleanup Expired Caches", ['tiers' => CacheTierManager::getAvailableTiers()]);
+                    //Logger::debug("Cleanup Expired Caches", ['tiers' => CacheTierManager::getAvailableTiers()]);
                 }
 
                 // if the clear tier argument is set
@@ -90,14 +96,14 @@ if (! class_exists('CacheCleaner')) {
                         Cache::clearTier($tier);
 
                         // debug logging
-                        Logger::debug("Cleared Cache Tier", [$tier]);
+                        //Logger::debug("Cleared Cache Tier", [$tier]);
                     }
                 }
 
             // whoopsie...
             } catch (\Exception $e) {
                 // log the error
-                Logger::error("Cache Clear Error", ['error' => $e -> getMessage()]);
+                //Logger::error("Cache Clear Error", ['error' => $e -> getMessage()]);
             }
 
             return 0;
