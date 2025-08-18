@@ -161,7 +161,7 @@ $promises = [
     Cache::getAsync('user:789')
 ];
 
-Cache_Promise::all($promises)
+CachePromise::all($promises)
     ->then(function($results) {
         // All users loaded
         foreach($results as $userData) {
@@ -180,7 +180,7 @@ $healthStatus = Cache::isHealthy();
 $isRedisHealthy = Cache::isTierHealthy('redis');
 
 // Get detailed health information
-$healthDetails = Cache_HealthMonitor::checkAllTiers();
+$healthDetails = CacheHealthMonitor::checkAllTiers();
 
 // Get performance statistics
 $stats = Cache::getStats();
@@ -190,14 +190,14 @@ $stats = Cache::getStats();
 
 ```php
 // Namespaced keys
-Cache_KeyManager::setGlobalNamespace('myapp');
-$key = Cache_KeyManager::createNamespacedKey('user:123', 'session', 'redis');
+CacheKeyManager::setGlobalNamespace('myapp');
+$key = CacheKeyManager::createNamespacedKey('user:123', 'session', 'redis');
 
 // Analyze key generation
-$keyInfo = Cache_KeyManager::analyzeKey('very-long-key-name', 'memcached');
+$keyInfo = CacheKeyManager::analyzeKey('very-long-key-name', 'memcached');
 
 // Get tier limitations
-$limitations = Cache_KeyManager::getTierLimitations();
+$limitations = CacheKeyManager::getTierLimitations();
 ```
 
 ## 🔧 Configuration
@@ -294,7 +294,7 @@ Returns:
 
 ```php
 // Set up health monitoring
-Cache_HealthMonitor::initialize([
+CacheHealthMonitor::initialize([
     'monitoring_enabled' => true,
     'check_interval' => 60,
     'alert_config' => [
@@ -308,7 +308,7 @@ Cache_HealthMonitor::initialize([
 ]);
 
 // Get health status
-$health = Cache_HealthMonitor::checkAllTiers();
+$health = CacheHealthMonitor::checkAllTiers();
 ```
 
 ## 🛠️ CLI Tools
@@ -351,7 +351,7 @@ $debugInfo = Cache::debug();
 $availableTiers = Cache::getAvailableTiers();
 
 // Validate configuration
-$configValidation = Cache_Config::validateGlobal();
+$configValidation = CacheConfig::validateGlobal();
 
 // Get last errors
 $lastError = Cache::getLastError();
@@ -417,7 +417,7 @@ Cache::configure([
 ]);
 
 // Enable connection pooling
-Cache_ConnectionPool::configurePool('redis', [
+CacheConnectionPool::configurePool('redis', [
     'min_connections' => 5,
     'max_connections' => 20,
     'idle_timeout' => 300
@@ -493,9 +493,9 @@ class CacheTest extends TestCase
 | Method | Description | Returns |
 |--------|-------------|---------|
 | `Cache::enableAsync($eventLoop)` | Enable async operations | `void` |
-| `Cache::getAsync($key)` | Async get operation | `Cache_Promise` |
-| `Cache::setAsync($key, $data, $ttl)` | Async set operation | `Cache_Promise` |
-| `Cache::getBatchAsync($keys)` | Async batch get | `Cache_Promise` |
+| `Cache::getAsync($key)` | Async get operation | `CachePromise` |
+| `Cache::setAsync($key, $data, $ttl)` | Async set operation | `CachePromise` |
+| `Cache::getBatchAsync($keys)` | Async batch get | `CachePromise` |
 
 ## 🤝 Contributing
 
