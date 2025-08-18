@@ -50,6 +50,10 @@ if (! trait_exists('CacheMySQL')) {
          */
         private static function getMySQLDatabase(): ?Database
         {
+            // Check if Database class exists - silently return null if not
+            if (! class_exists('\KPT\Database')) {
+                return null;
+            }
 
             // return existing connection if available
             if (self::$_mysql_db !== null) {
@@ -58,8 +62,17 @@ if (! trait_exists('CacheMySQL')) {
 
             // try to create new database instance
             try {
-                // create new database instance
-                self::$_mysql_db = new Database();
+                // get mysql configuration
+                $config = CacheConfig::get('mysql');
+                
+                // build database settings object if provided in config
+                $db_settings = null;
+                if (isset($config['db_settings']) && is_array($config['db_settings'])) {
+                    $db_settings = (object) $config['db_settings'];
+                }
+                
+                // create new database instance with settings
+                self::$_mysql_db = new Database($db_settings);
 
                 // ensure cache table exists
                 if (! self::$_mysql_table_initialized) {
