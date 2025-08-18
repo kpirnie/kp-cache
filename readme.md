@@ -35,16 +35,13 @@ A comprehensive, high-performance caching solution that provides multiple tiers 
 ### Requirements
 
 - PHP 8.1 or higher
+- Composer
 - At least one cache backend (File system is always available)
 
-### Basic Installation
+### Installation via Composer
 
 ```bash
-# Clone or download the KPT Cache system
-git clone https://github.com/your-repo/kpt-cache.git
-
-# Include in your project
-require_once 'path/to/kpt-cache/cache.php';
+composer require kevinpirnie/kpt-cache
 ```
 
 ### Optional Extensions
@@ -71,6 +68,8 @@ pecl install yac
 
 ```php
 <?php
+require_once 'vendor/autoload.php';
+
 use KPT\Cache;
 
 // Initialize the cache system
@@ -96,6 +95,8 @@ Cache::clear();
 
 ```php
 <?php
+require_once 'vendor/autoload.php';
+
 use KPT\Cache;
 
 Cache::configure([
@@ -312,17 +313,19 @@ $health = Cache_HealthMonitor::checkAllTiers();
 
 ## 🛠️ CLI Tools
 
+The package includes CLI tools for cache management. After installation, you can access them in your vendor directory:
+
 ### Cache Cleaner
 
 ```bash
 # Clear all caches
-php cache/cleaner.php --clear_all
+php vendor/kevinpirnie/kpt-cache/cache/cleaner.php --clear_all
 
 # Clear specific tier
-php cache/cleaner.php --clear_tier=redis
+php vendor/kevinpirnie/kpt-cache/cache/cleaner.php --clear_tier=redis
 
 # Cleanup expired entries
-php cache/cleaner.php --cleanup
+php vendor/kevinpirnie/kpt-cache/cache/cleaner.php --cleanup
 ```
 
 ### Integration with Cron
@@ -330,10 +333,10 @@ php cache/cleaner.php --cleanup
 ```bash
 # Add to crontab for automatic cleanup
 # Cleanup expired entries every hour
-0 * * * * php /path/to/your/app/cache/cleaner.php --cleanup
+0 * * * * php /path/to/your/app/vendor/kevinpirnie/kpt-cache/cache/cleaner.php --cleanup
 
 # Full cache clear daily at 3 AM
-0 3 * * * php /path/to/your/app/cache/cleaner.php --clear_all
+0 3 * * * php /path/to/your/app/vendor/kevinpirnie/kpt-cache/cache/cleaner.php --clear_all
 ```
 
 ## 🔍 Debugging & Troubleshooting
@@ -506,8 +509,8 @@ Contributions are welcome! Please follow these guidelines:
 ### Development Setup
 
 ```bash
-git clone https://github.com/your-repo/kpt-cache.git
-cd kpt-cache
+git clone https://github.com/kpirnie/kp-cache.git
+cd kp-cache
 composer install
 ```
 
@@ -517,9 +520,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Documentation**: [Full API Documentation](docs/)
-- **Issues**: [GitHub Issues](https://github.com/your-repo/kpt-cache/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-repo/kpt-cache/discussions)
+- **Issues**: [GitHub Issues](https://github.com/kpirnie/kp-cache/issues)
+- **Packagist**: [kevinpirnie/kpt-cache](https://packagist.org/packages/kevinpirnie/kpt-cache)
 
 ## 🙏 Acknowledgments
 
