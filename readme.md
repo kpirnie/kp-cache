@@ -2,12 +2,6 @@
 
 A comprehensive, high-performance caching solution that provides multiple tiers of caching including OPcache, SHMOP, APCu, YAC, Redis, Memcached, MySQL, SQLite, and File-based caching with automatic tier discovery, connection pooling, and failover support.
 
-[![Latest Stable Version](https://poser.pugx.org/your-vendor/kpt-cache/v/stable)](https://packagist.org/packages/your-vendor/kpt-cache)
-[![Total Downloads](https://poser.pugx.org/your-vendor/kpt-cache/downloads)](https://packagist.org/packages/your-vendor/kpt-cache)
-[![License](https://poser.pugx.org/your-vendor/kpt-cache/license)](https://packagist.org/packages/your-vendor/kpt-cache)
-[![PHP Version Require](https://poser.pugx.org/your-vendor/kpt-cache/require/php)](https://packagist.org/packages/your-vendor/kpt-cache)
-[![CI](https://github.com/your-username/kpt-cache/workflows/CI/badge.svg)](https://github.com/your-username/kpt-cache/actions)
-
 ## ✨ Features
 
 - **🚀 Multi-Tier Architecture**: Automatically discovers and prioritizes cache tiers for optimal performance
