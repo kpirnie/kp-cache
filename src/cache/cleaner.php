@@ -141,11 +141,6 @@ if (! class_exists('CacheCleaner')) {
 
 // CLI execution if called directly
 if (php_sapi_name() === 'cli' && isset($argv) && realpath($argv[0]) === realpath(__FILE__)) {
-    // Define KPT_PATH for CLI access to other KPT classes
-    defined('KPT_PATH') || define('KPT_PATH', dirname(__DIR__, 3) . '/');
-
-    // Try to include Composer autoloader
-    require_once KPT_PATH . 'vendor/main.php';
 
     // clean the cache
     CacheCleaner::cli();
