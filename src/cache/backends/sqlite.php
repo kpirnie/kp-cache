@@ -334,7 +334,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
                 $sql = "DELETE FROM `{$table_name}` WHERE cache_key = ?";
                 
                 // debug logging
-                LOG::debug( 'Delete from SQLite cache', ['key' => $key] );
+                Logger::debug( 'Delete from SQLite cache', ['key' => $key] );
                 
                 // prepare and execute the delete query
                 $stmt = $db -> prepare( $sql );
@@ -346,7 +346,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
             // whoopsie... setup the error and return false
             } catch ( \Exception $e ) {
                 self::$_sqlite_last_error = "SQLite delete error: " . $e -> getMessage( );
-                LOG::error( "SQLite delete error", ['error' => $e -> getMessage( )] );
+                Logger::error( "SQLite delete error", ['error' => $e -> getMessage( )] );
                 return false;
             }
         }
@@ -380,7 +380,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
                 $sql = "DELETE FROM `{$table_name}`";
                 
                 // debug logging
-                LOG::debug( 'Clearing SQLite cache' );
+                Logger::debug( 'Clearing SQLite cache' );
                 
                 // execute the delete query
                 $result = $db -> exec( $sql );
@@ -394,7 +394,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
             // whoopsie... setup the error and return false
             } catch ( \Exception $e ) {
                 self::$_sqlite_last_error = "SQLite clear error: " . $e -> getMessage( );
-                LOG::error( "SQLite clear error", ['error' => $e -> getMessage( )] );
+                Logger::error( "SQLite clear error", ['error' => $e -> getMessage( )] );
                 return false;
             }
         }
@@ -429,7 +429,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
                 $sql = "DELETE FROM `{$table_name}` WHERE expires_at IS NOT NULL AND expires_at <= strftime('%s', 'now')";
                 
                 // debug logging
-                LOG::debug( 'Cleaning up expired SQLite cache items' );
+                Logger::debug( 'Cleaning up expired SQLite cache items' );
                 
                 // execute the cleanup query
                 $result = $db -> exec( $sql );
@@ -440,7 +440,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
             // whoopsie... setup the error and return zero
             } catch ( \Exception $e ) {
                 self::$_sqlite_last_error = "SQLite cleanup error: " . $e -> getMessage( );
-                LOG::error( "SQLite cleanup error", ['error' => $e -> getMessage( )] );
+                Logger::error( "SQLite cleanup error", ['error' => $e -> getMessage( )] );
                 return 0;
             }
         }
@@ -638,7 +638,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
             try {
                 
                 // debug logging
-                LOG::debug( 'Optimizing SQLite database' );
+                Logger::debug( 'Optimizing SQLite database' );
                 
                 // vacuum to reclaim space and defragment
                 $db -> exec( 'VACUUM' );
@@ -652,7 +652,7 @@ if( ! trait_exists( 'Cache_SQLite' ) ) {
             // whoopsie... setup the error and return false
             } catch ( \Exception $e ) {
                 self::$_sqlite_last_error = "SQLite optimize error: " . $e -> getMessage( );
-                LOG::error( "SQLite optimize error", ['error' => $e -> getMessage( )] );
+                Logger::error( "SQLite optimize error", ['error' => $e -> getMessage( )] );
                 return false;
             }
         }

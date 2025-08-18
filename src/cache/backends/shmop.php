@@ -261,12 +261,12 @@ if ( ! trait_exists( 'Cache_SHMOP' ) ) {
                 
                 if ( ! self::deleteFromShmopInternal( $shmop_key ) ) {
                     $success = false;
-                    LOG::error( "Failed to delete tracked SHMOP segment", [
+                    Logger::error( "Failed to delete tracked SHMOP segment", [
                         'cache_key' => $cache_key,
                         'shmop_key' => $shmop_key
                     ] );
                 } else {
-                    LOG::debug( "Successfully deleted tracked SHMOP segment", [
+                    Logger::debug( "Successfully deleted tracked SHMOP segment", [
                         'cache_key' => $cache_key,
                         'shmop_key' => $shmop_key
                     ] );
@@ -288,7 +288,7 @@ if ( ! trait_exists( 'Cache_SHMOP' ) ) {
                     if ( $segment !== false ) {
                         @shmop_delete( $segment );
                         @shmop_close( $segment );
-                        LOG::debug( "Cleaned up untracked SHMOP segment", ['shmop_key' => $test_key] );
+                        Logger::debug( "Cleaned up untracked SHMOP segment", ['shmop_key' => $test_key] );
                     }
                 }
             }
@@ -328,7 +328,7 @@ if ( ! trait_exists( 'Cache_SHMOP' ) ) {
                 return $result;
                 
             } catch ( \Exception $e ) {
-                LOG::error( "SHMOP delete error", ['error' => $e->getMessage(), 'key' => $key] );
+                Logger::error( "SHMOP delete error", ['error' => $e->getMessage(), 'key' => $key] );
                 return false;
             }
         }
@@ -388,7 +388,7 @@ if ( ! trait_exists( 'Cache_SHMOP' ) ) {
                     // close it
                     @shmop_close( $segment );
                     // debug logging
-                    LOG::debug( 'Delete from SHMOP', ['key' => $shmop_key] );
+                    Logger::debug( 'Delete from SHMOP', ['key' => $shmop_key] );
                     // return the result
                     return $result;
                 }
@@ -396,7 +396,7 @@ if ( ! trait_exists( 'Cache_SHMOP' ) ) {
             // whoopsie...
             } catch ( \Exception $e ) {
                 // log the error
-                LOG::error( "SHMOP delete error", ['error' => $e->getMessage()] );
+                Logger::error( "SHMOP delete error", ['error' => $e->getMessage()] );
             }
 
             // default return

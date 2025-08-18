@@ -1147,7 +1147,7 @@ if ( ! class_exists( 'Cache_HealthMonitor' ) ) {
 
             // Log alert
             if ( self::$_alert_config['log_alerts'] ) {
-                LOG::error( $message, [
+                Logger::error( $message, [
                     'tier' => $tier,
                     'health_result' => $health_result
                 ] );

@@ -66,7 +66,7 @@ if ( ! class_exists( 'Cache_Cleaner' ) ) {
                     Cache::close( );
 
                     // debug logging
-                    LOG::debug( "Cleared All Available Caches", ['tiers' => Cache_TierManager::getAvailableTiers( )] );
+                    Logger::debug( "Cleared All Available Caches", ['tiers' => Cache_TierManager::getAvailableTiers( )] );
 
                 }
 
@@ -77,7 +77,7 @@ if ( ! class_exists( 'Cache_Cleaner' ) ) {
                     Cache::cleanup( );
 
                     // debug logging
-                    LOG::debug( "Cleanup Expired Caches", ['tiers' => Cache_TierManager::getAvailableTiers( )] );
+                    Logger::debug( "Cleanup Expired Caches", ['tiers' => Cache_TierManager::getAvailableTiers( )] );
 
                 }
 
@@ -95,7 +95,7 @@ if ( ! class_exists( 'Cache_Cleaner' ) ) {
                         Cache::clearTier( $tier );
 
                         // debug logging
-                        LOG::debug( "Cleared Cache Tier", [$tier] );
+                        Logger::debug( "Cleared Cache Tier", [$tier] );
 
                     }
                     
@@ -104,7 +104,7 @@ if ( ! class_exists( 'Cache_Cleaner' ) ) {
             // whoopsie...
             } catch ( \Exception $e ) {
                 // log the error
-                LOG::error( "Cache Clear Error", ['error' => $e -> getMessage( )] );
+                Logger::error( "Cache Clear Error", ['error' => $e -> getMessage( )] );
 
             }
 

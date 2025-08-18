@@ -131,7 +131,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug log
-                            LOG::debug( "Cache getAsync (Event Loop)", [
+                            Logger::debug( "Cache getAsync (Event Loop)", [
                                 'key' => $key,
                                 'success' => true,
                                 'mode' => 'async'
@@ -142,7 +142,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache getAsync Error (Event Loop)", [
+                            Logger::error( "Cache getAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'message' => $e -> getMessage( )
                             ] );
@@ -162,7 +162,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug log
-                        LOG::debug( "Cache getAsync (Fallback)", [
+                        Logger::debug( "Cache getAsync (Fallback)", [
                             'key' => $key,
                             'success' => true,
                             'mode' => 'fallback'
@@ -173,7 +173,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache getAsync Error (Fallback)", [
+                        Logger::error( "Cache getAsync Error (Fallback)", [
                             'key' => $key,
                             'message' => $e -> getMessage( )
                         ] );
@@ -217,7 +217,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache setAsync (Event Loop)", [
+                            Logger::debug( "Cache setAsync (Event Loop)", [
                                 'key' => $key,
                                 'ttl' => $ttl,
                                 'success' => true,
@@ -229,7 +229,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache setAsync Error (Event Loop)", [
+                            Logger::error( "Cache setAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'ttl' => $ttl,
                                 'message' => $e -> getMessage( )
@@ -250,7 +250,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache setAsync (Fallback)", [
+                        Logger::debug( "Cache setAsync (Fallback)", [
                             'key' => $key,
                             'ttl' => $ttl,
                             'success' => true,
@@ -262,7 +262,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache setAsync Error (Fallback)", [
+                        Logger::error( "Cache setAsync Error (Fallback)", [
                             'key' => $key,
                             'ttl' => $ttl,
                             'message' => $e -> getMessage( )
@@ -305,7 +305,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache deleteAsync (Event Loop)", [
+                            Logger::debug( "Cache deleteAsync (Event Loop)", [
                                 'key' => $key,
                                 'success' => true,
                                 'mode' => 'async'
@@ -316,7 +316,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache deleteAsync Error (Event Loop)", [
+                            Logger::error( "Cache deleteAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'message' => $e -> getMessage( )
                             ] );
@@ -336,7 +336,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache deleteAsync (Fallback)", [
+                        Logger::debug( "Cache deleteAsync (Fallback)", [
                             'key' => $key,
                             'success' => true,
                             'mode' => 'fallback'
@@ -347,7 +347,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache deleteAsync Error (Fallback)", [
+                        Logger::error( "Cache deleteAsync Error (Fallback)", [
                             'key' => $key,
                             'message' => $e -> getMessage( )
                         ] );
@@ -388,7 +388,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache clearAsync (Event Loop)", [
+                            Logger::debug( "Cache clearAsync (Event Loop)", [
                                 'success' => true,
                                 'mode' => 'async'
                             ] );
@@ -398,7 +398,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache clearAsync Error (Event Loop)", [
+                            Logger::error( "Cache clearAsync Error (Event Loop)", [
                                 'message' => $e -> getMessage( )
                             ] );
                         }
@@ -417,7 +417,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache clearAsync (Fallback)", [
+                        Logger::debug( "Cache clearAsync (Fallback)", [
                             'success' => true,
                             'mode' => 'fallback'
                         ] );
@@ -427,7 +427,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache clearAsync Error (Fallback)", [
+                        Logger::error( "Cache clearAsync Error (Fallback)", [
                             'message' => $e -> getMessage( )
                         ] );
                     }
@@ -465,7 +465,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                     $combined = array_combine( $keys, $results );
 
                     // debug logging
-                    LOG::debug( "Cache getBatchAsync Completed", [
+                    Logger::debug( "Cache getBatchAsync Completed", [
                         'keys' => $keys,
                         'key_count' => count( $keys ),
                         'success' => true
@@ -476,7 +476,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                 -> catch( function( $error ) use ( $keys ) {
 
                     // error logging
-                    LOG::error( "Cache getBatchAsync Error", [
+                    Logger::error( "Cache getBatchAsync Error", [
                         'keys' => $keys,
                         'key_count' => count( $keys ),
                         'message' => $error -> getMessage( )
@@ -516,7 +516,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                 -> then( function( $results ) use ( $items, $ttl ) {
 
                     // debug logging
-                    LOG::debug( "Cache setBatchAsync Completed", [
+                    Logger::debug( "Cache setBatchAsync Completed", [
                         'items' => array_keys( $items ),
                         'item_count' => count( $items ),
                         'ttl' => $ttl,
@@ -528,7 +528,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                 -> catch( function( $error ) use ( $items, $ttl ) {
 
                     // error logging
-                    LOG::error( "Cache setBatchAsync Error", [
+                    Logger::error( "Cache setBatchAsync Error", [
                         'items' => array_keys( $items ),
                         'item_count' => count( $items ),
                         'ttl' => $ttl,
@@ -566,7 +566,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                 -> then( function( $results ) use ( $keys ) {
 
                     // debug logging
-                    LOG::debug( "Cache deleteBatchAsync Completed", [
+                    Logger::debug( "Cache deleteBatchAsync Completed", [
                         'keys' => $keys,
                         'key_count' => count( $keys ),
                         'success' => true
@@ -577,7 +577,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                 -> catch( function( $error ) use ( $keys ) {
 
                     // error logging
-                    LOG::error( "Cache deleteBatchAsync Error", [
+                    Logger::error( "Cache deleteBatchAsync Error", [
                         'keys' => $keys,
                         'key_count' => count( $keys ),
                         'message' => $error -> getMessage( )
@@ -620,7 +620,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache getFromTierAsync (Event Loop)", [
+                            Logger::debug( "Cache getFromTierAsync (Event Loop)", [
                                 'key' => $key,
                                 'tier' => $tier,
                                 'success' => true,
@@ -632,7 +632,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache getFromTierAsync Error (Event Loop)", [
+                            Logger::error( "Cache getFromTierAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'tier' => $tier,
                                 'message' => $e -> getMessage( )
@@ -653,7 +653,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache getFromTierAsync (Fallback)", [
+                        Logger::debug( "Cache getFromTierAsync (Fallback)", [
                             'key' => $key,
                             'tier' => $tier,
                             'success' => true,
@@ -665,7 +665,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache getFromTierAsync Error (Fallback)", [
+                        Logger::error( "Cache getFromTierAsync Error (Fallback)", [
                             'key' => $key,
                             'tier' => $tier,
                             'message' => $e -> getMessage( )
@@ -710,7 +710,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache setToTierAsync (Event Loop)", [
+                            Logger::debug( "Cache setToTierAsync (Event Loop)", [
                                 'key' => $key,
                                 'tier' => $tier,
                                 'ttl' => $ttl,
@@ -723,7 +723,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache setToTierAsync Error (Event Loop)", [
+                            Logger::error( "Cache setToTierAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'tier' => $tier,
                                 'ttl' => $ttl,
@@ -745,7 +745,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache setToTierAsync (Fallback)", [
+                        Logger::debug( "Cache setToTierAsync (Fallback)", [
                             'key' => $key,
                             'tier' => $tier,
                             'ttl' => $ttl,
@@ -758,7 +758,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache setToTierAsync Error (Fallback)", [
+                        Logger::error( "Cache setToTierAsync Error (Fallback)", [
                             'key' => $key,
                             'tier' => $tier,
                             'ttl' => $ttl,
@@ -802,7 +802,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache deleteFromTierAsync (Event Loop)", [
+                            Logger::debug( "Cache deleteFromTierAsync (Event Loop)", [
                                 'key' => $key,
                                 'tier' => $tier,
                                 'success' => true,
@@ -814,7 +814,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache deleteFromTierAsync Error (Event Loop)", [
+                            Logger::error( "Cache deleteFromTierAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'tier' => $tier,
                                 'message' => $e -> getMessage( )
@@ -835,7 +835,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache deleteFromTierAsync (Fallback)", [
+                        Logger::debug( "Cache deleteFromTierAsync (Fallback)", [
                             'key' => $key,
                             'tier' => $tier,
                             'success' => true,
@@ -847,7 +847,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache deleteFromTierAsync Error (Fallback)", [
+                        Logger::error( "Cache deleteFromTierAsync Error (Fallback)", [
                             'key' => $key,
                             'tier' => $tier,
                             'message' => $e -> getMessage( )
@@ -893,7 +893,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache setToTiersAsync (Event Loop)", [
+                            Logger::debug( "Cache setToTiersAsync (Event Loop)", [
                                 'key' => $key,
                                 'tiers' => $tiers,
                                 'tier_count' => count( $tiers ),
@@ -907,7 +907,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache setToTiersAsync Error (Event Loop)", [
+                            Logger::error( "Cache setToTiersAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'tiers' => $tiers,
                                 'tier_count' => count( $tiers ),
@@ -930,7 +930,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache setToTiersAsync (Fallback)", [
+                        Logger::debug( "Cache setToTiersAsync (Fallback)", [
                             'key' => $key,
                             'tiers' => $tiers,
                             'tier_count' => count( $tiers ),
@@ -944,7 +944,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache setToTiersAsync Error (Fallback)", [
+                        Logger::error( "Cache setToTiersAsync Error (Fallback)", [
                             'key' => $key,
                             'tiers' => $tiers,
                             'tier_count' => count( $tiers ),
@@ -990,7 +990,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache deleteFromTiersAsync (Event Loop)", [
+                            Logger::debug( "Cache deleteFromTiersAsync (Event Loop)", [
                                 'key' => $key,
                                 'tiers' => $tiers,
                                 'tier_count' => count( $tiers ),
@@ -1003,7 +1003,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache deleteFromTiersAsync Error (Event Loop)", [
+                            Logger::error( "Cache deleteFromTiersAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'tiers' => $tiers,
                                 'tier_count' => count( $tiers ),
@@ -1025,7 +1025,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache deleteFromTiersAsync (Fallback)", [
+                        Logger::debug( "Cache deleteFromTiersAsync (Fallback)", [
                             'key' => $key,
                             'tiers' => $tiers,
                             'tier_count' => count( $tiers ),
@@ -1038,7 +1038,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache deleteFromTiersAsync Error (Fallback)", [
+                        Logger::error( "Cache deleteFromTiersAsync Error (Fallback)", [
                             'key' => $key,
                             'tiers' => $tiers,
                             'tier_count' => count( $tiers ),
@@ -1084,7 +1084,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache getWithTierPreferenceAsync (Event Loop)", [
+                            Logger::debug( "Cache getWithTierPreferenceAsync (Event Loop)", [
                                 'key' => $key,
                                 'preferred_tier' => $preferred_tier,
                                 'fallback_on_failure' => $fallback_on_failure,
@@ -1097,7 +1097,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache getWithTierPreferenceAsync Error (Event Loop)", [
+                            Logger::error( "Cache getWithTierPreferenceAsync Error (Event Loop)", [
                                 'key' => $key,
                                 'preferred_tier' => $preferred_tier,
                                 'fallback_on_failure' => $fallback_on_failure,
@@ -1119,7 +1119,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache getWithTierPreferenceAsync (Fallback)", [
+                        Logger::debug( "Cache getWithTierPreferenceAsync (Fallback)", [
                             'key' => $key,
                             'preferred_tier' => $preferred_tier,
                             'fallback_on_failure' => $fallback_on_failure,
@@ -1132,7 +1132,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache getWithTierPreferenceAsync Error (Fallback)", [
+                        Logger::error( "Cache getWithTierPreferenceAsync Error (Fallback)", [
                             'key' => $key,
                             'preferred_tier' => $preferred_tier,
                             'fallback_on_failure' => $fallback_on_failure,
@@ -1190,7 +1190,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                     -> then( function( $results ) use ( $resolve, $operations ) {
 
                         // debug logging
-                        LOG::debug( "Cache pipelineAsync Completed", [
+                        Logger::debug( "Cache pipelineAsync Completed", [
                             'operation_count' => count( $operations ),
                             'operations' => array_column( $operations, 'method' ),
                             'success' => true
@@ -1203,7 +1203,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                     -> catch( function( $error ) use ( $reject, $operations ) {
 
                         // error logging
-                        LOG::error( "Cache pipelineAsync Error", [
+                        Logger::error( "Cache pipelineAsync Error", [
                             'operation_count' => count( $operations ),
                             'operations' => array_column( $operations, 'method' ),
                             'message' => $error -> getMessage( )
@@ -1247,7 +1247,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                             $resolve( $result );
 
                             // debug logging
-                            LOG::debug( "Cache cleanupAsync (Event Loop)", [
+                            Logger::debug( "Cache cleanupAsync (Event Loop)", [
                                 'cleanup_count' => $result,
                                 'success' => true,
                                 'mode' => 'async'
@@ -1258,7 +1258,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                             // reject the promise and log the error
                             $reject( $e );
-                            LOG::error( "Cache cleanupAsync Error (Event Loop)", [
+                            Logger::error( "Cache cleanupAsync Error (Event Loop)", [
                                 'message' => $e -> getMessage( )
                             ] );
                         }
@@ -1277,7 +1277,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
                         $resolve( $result );
 
                         // debug logging
-                        LOG::debug( "Cache cleanupAsync (Fallback)", [
+                        Logger::debug( "Cache cleanupAsync (Fallback)", [
                             'cleanup_count' => $result,
                             'success' => true,
                             'mode' => 'fallback'
@@ -1288,7 +1288,7 @@ if ( ! trait_exists( 'Cache_Async' ) ) {
 
                         // reject the promise and log the error
                         $reject( $e );
-                        LOG::error( "Cache cleanupAsync Error (Fallback)", [
+                        Logger::error( "Cache cleanupAsync Error (Fallback)", [
                             'message' => $e -> getMessage( )
                         ] );
                     }

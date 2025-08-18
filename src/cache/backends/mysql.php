@@ -268,7 +268,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
                 $sql = "DELETE FROM `{$table_name}` WHERE cache_key = ?";
                 
                 // debug logging
-                LOG::debug( 'Delete from MySQL cache', ['key' => $key] );
+                Logger::debug( 'Delete from MySQL cache', ['key' => $key] );
                 
                 // execute the delete query
                 $result = $db -> query( $sql )
@@ -281,7 +281,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
             // whoopsie... setup the error and return false
             } catch ( \Exception $e ) {
                 self::$_mysql_last_error = "MySQL delete error: " . $e -> getMessage( );
-                LOG::error( "MySQL delete error", ['error' => $e -> getMessage( )] );
+                Logger::error( "MySQL delete error", ['error' => $e -> getMessage( )] );
                 return false;
             }
         }
@@ -315,7 +315,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
                 $sql = "TRUNCATE TABLE `{$table_name}`";
                 
                 // debug logging
-                LOG::debug( 'Clearing MySQL cache' );
+                Logger::debug( 'Clearing MySQL cache' );
                 
                 // execute the truncate query
                 $result = $db -> raw( $sql );
@@ -326,7 +326,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
             // whoopsie... setup the error and return false
             } catch ( \Exception $e ) {
                 self::$_mysql_last_error = "MySQL clear error: " . $e -> getMessage( );
-                LOG::error( "MySQL clear error", ['error' => $e -> getMessage( )] );
+                Logger::error( "MySQL clear error", ['error' => $e -> getMessage( )] );
                 return false;
             }
         }
@@ -361,7 +361,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
                 $sql = "DELETE FROM `{$table_name}` WHERE expires_at IS NOT NULL AND expires_at <= NOW()";
                 
                 // debug logging
-                LOG::debug( 'Cleaning up expired MySQL cache items' );
+                Logger::debug( 'Cleaning up expired MySQL cache items' );
                 
                 // execute the cleanup query
                 $result = $db -> raw( $sql );
@@ -372,7 +372,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
             // whoopsie... setup the error and return zero
             } catch ( \Exception $e ) {
                 self::$_mysql_last_error = "MySQL cleanup error: " . $e -> getMessage( );
-                LOG::error( "MySQL cleanup error", ['error' => $e -> getMessage( )] );
+                Logger::error( "MySQL cleanup error", ['error' => $e -> getMessage( )] );
                 return 0;
             }
         }
@@ -588,7 +588,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
                 $sql = "OPTIMIZE TABLE `{$table_name}`";
                 
                 // debug logging
-                LOG::debug( 'Optimizing MySQL cache table' );
+                Logger::debug( 'Optimizing MySQL cache table' );
                 
                 // execute the optimize query
                 $result = $db -> raw( $sql );
@@ -599,7 +599,7 @@ if( ! trait_exists( 'Cache_MySQL' ) ) {
             // whoopsie... setup the error and return false
             } catch ( \Exception $e ) {
                 self::$_mysql_last_error = "MySQL optimize error: " . $e -> getMessage( );
-                LOG::error( "MySQL optimize error", ['error' => $e -> getMessage( )] );
+                Logger::error( "MySQL optimize error", ['error' => $e -> getMessage( )] );
                 return false;
             }
         }

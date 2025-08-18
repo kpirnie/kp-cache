@@ -151,7 +151,7 @@ Cache::getAsync('user:123')
     })
     ->catch(function($error) {
         // Handle errors
-        LOG::error('Cache error: ' . $error->getMessage());
+        Logger::error('Cache error: ' . $error->getMessage());
     });
 
 // Batch async operations
@@ -364,7 +364,7 @@ $lastError = Cache::getLastError();
 // Test Redis connectivity
 if (!Cache::isTierAvailable('redis')) {
     $error = Cache::getLastError();
-    LOG::error("Redis unavailable: " . $error);
+    Logger::error("Redis unavailable: " . $error);
 }
 ```
 
@@ -386,7 +386,7 @@ foreach (['opcache', 'apcu'] as $tier) {
     if (isset($stats[$tier]['memory_usage'])) {
         $usage = $stats[$tier]['memory_usage'];
         if ($usage > 90) {
-            LOG::warning("{$tier} memory usage high: {$usage}%");
+            Logger::warning("{$tier} memory usage high: {$usage}%");
         }
     }
 }

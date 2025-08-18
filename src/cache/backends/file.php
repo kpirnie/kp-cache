@@ -49,13 +49,13 @@ if ( ! trait_exists( 'Cache_File' ) ) {
                 // Try to create the directory
                 if ( ! @mkdir( $path, 0755, true ) ) {
                     $error = error_get_last();
-                    LOG::error( "Failed to create cache directory", [
+                    Logger::error( "Failed to create cache directory", [
                         'path' => $path,
                         'error' => $error['message'] ?? 'Unknown error'
                     ]);
                     return false;
                 }
-                LOG::debug( "Created cache directory", ['path' => $path] );
+                Logger::debug( "Created cache directory", ['path' => $path] );
             }
             
             // Check if writable - use path WITHOUT trailing slash
@@ -69,12 +69,12 @@ if ( ! trait_exists( 'Cache_File' ) ) {
 
                     // Write succeeded, directory is actually writable
                     @unlink( $test_file );
-                    LOG::debug( "Directory is writable (write test passed)", ['path' => $path] );
+                    Logger::debug( "Directory is writable (write test passed)", ['path' => $path] );
                     return true;
 
                 // otherwise, it's really not writable
                 } else {
-                    LOG::error( "Directory not writable", [
+                    Logger::error( "Directory not writable", [
                         'path' => $path,
                         'check_path' => $check_path,
                         'is_dir' => is_dir( $check_path ),
@@ -87,7 +87,7 @@ if ( ! trait_exists( 'Cache_File' ) ) {
                 }
             }
             
-            LOG::debug( "Directory verified as writable", ['path' => $path] );
+            Logger::debug( "Directory verified as writable", ['path' => $path] );
             return true;
         }
 

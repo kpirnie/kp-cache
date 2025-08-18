@@ -186,7 +186,7 @@ if ( ! trait_exists( 'Cache_YAC' ) ) {
                 $prefixed_key = $prefix . $key;
 
                 // debug logging
-                LOG::debug( 'Delete from YAC', ['key' => $prefixed_key] );
+                Logger::debug( 'Delete from YAC', ['key' => $prefixed_key] );
 
                 // return deleting the item
                 return yac_delete( $prefixed_key );
@@ -195,7 +195,7 @@ if ( ! trait_exists( 'Cache_YAC' ) ) {
             } catch ( \Exception $e ) {
 
                 // log the error
-                LOG::error( "YAC delete error", ['error' => $e -> getMessage( )] );
+                Logger::error( "YAC delete error", ['error' => $e -> getMessage( )] );
                 self::$_last_error = "YAC delete error: " . $e -> getMessage( );
             }
 
@@ -226,7 +226,7 @@ if ( ! trait_exists( 'Cache_YAC' ) ) {
             try {
 
                 // debug logging
-                LOG::debug( 'Clearing YAC cache' );
+                Logger::debug( 'Clearing YAC cache' );
 
                 // return flushing the cache
                 return yac_flush( );
@@ -234,7 +234,7 @@ if ( ! trait_exists( 'Cache_YAC' ) ) {
             // whoopsie... setup the error and return false
             } catch ( \Exception $e ) {
                 self::$_last_error = "YAC clear error: " . $e -> getMessage( );
-                LOG::error( "YAC clear error", ['error' => $e -> getMessage( )] );
+                Logger::error( "YAC clear error", ['error' => $e -> getMessage( )] );
                 return false;
             }
 
@@ -262,7 +262,7 @@ if ( ! trait_exists( 'Cache_YAC' ) ) {
             // YAC cleans expired items on access
             
             // debug logging
-            LOG::debug( 'YAC cleanup called - automatic cleanup handled by YAC' );
+            Logger::debug( 'YAC cleanup called - automatic cleanup handled by YAC' );
             
             // return the count
             return $count;

@@ -138,7 +138,7 @@ if ( ! class_exists( 'Cache_KeyManager' ) ) {
             self::cacheKey( $cache_key, $final_key );
 
             // debug logging
-            LOG::debug( 'Cache Generated Key', [] );
+            Logger::debug( 'Cache Generated Key', [] );
             
             // return the final key
             return $final_key;
@@ -193,7 +193,7 @@ if ( ! class_exists( 'Cache_KeyManager' ) ) {
             }
 
             // debug logging
-            LOG::debug( 'Cache Generated Tier Keys', ['tiers' => $tiers] );
+            Logger::debug( 'Cache Generated Tier Keys', ['tiers' => $tiers] );
             
             // return the keys
             return $keys;
@@ -641,7 +641,7 @@ if ( ! class_exists( 'Cache_KeyManager' ) ) {
          * @return string|null Returns the last error message or null if none
          */
         public static function getLastError( ): ?string {
-            LOG::error( "Cache Key Error", [ 'error' => self::$_last_error ] );
+            Logger::error( "Cache Key Error", [ 'error' => self::$_last_error ] );
             return self::$_last_error;
         }
 

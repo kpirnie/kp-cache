@@ -127,7 +127,7 @@ if ( ! class_exists( 'Cache_Config' ) ) {
             }
 
             // debug logging
-            LOG::debug( "Cache Config Initialized", [] );
+            Logger::debug( "Cache Config Initialized", [] );
             
             // mark as initialized
             self::$initialized = true;
@@ -151,14 +151,14 @@ if ( ! class_exists( 'Cache_Config' ) ) {
             
             // Validate path is accessible
             if ( ! is_dir( dirname( $normalized_path ) ) && ! mkdir( dirname( $normalized_path ), 0755, true ) ) {
-                LOG::error( "Error Accessing Path", ['path' => $normalized_path] );
+                Logger::error( "Error Accessing Path", ['path' => $normalized_path] );
                 return false;
             }
             
             // Set the global path
             self::$global_config['path'] = $normalized_path;
             
-            LOG::debug( "Cache Global Path Set", ['path' => $normalized_path] );
+            Logger::debug( "Cache Global Path Set", ['path' => $normalized_path] );
             return true;
         }
         
@@ -184,7 +184,7 @@ if ( ! class_exists( 'Cache_Config' ) ) {
             }
 
             // debug logging
-            LOG::debug( "Cache Global Prefix Set", ['prefix' => $prefix] );
+            Logger::debug( "Cache Global Prefix Set", ['prefix' => $prefix] );
             
             // set the global prefix
             self::$global_config['prefix'] = $prefix;
@@ -277,7 +277,7 @@ if ( ! class_exists( 'Cache_Config' ) ) {
             $config = self::applyGlobalDefaults( $config, $backend );
 
             // debug logging
-            LOG::debug( "Cache Config Get", ['config' => $config] );
+            Logger::debug( "Cache Config Get", ['config' => $config] );
             
             // return the config
             return $config;
@@ -318,7 +318,7 @@ if ( ! class_exists( 'Cache_Config' ) ) {
             );
 
             // debug logging
-            LOG::debug( "Cache Config Set", ['config' => $config] );
+            Logger::debug( "Cache Config Set", ['config' => $config] );
             
             // return success
             return true;
@@ -351,7 +351,7 @@ if ( ! class_exists( 'Cache_Config' ) ) {
             }
 
             // debug logging
-            LOG::debug( 'Cache Get Full Config', ['config' => [
+            Logger::debug( 'Cache Get Full Config', ['config' => [
                 'global' => self::$global_config,
                 'backends' => $all_configs
             ]] );
@@ -613,7 +613,7 @@ if ( ! class_exists( 'Cache_Config' ) ) {
 
             // whoopsie...
             } catch ( \Exception $e ) {
-                LOG::error( 'Cache Config Import Error', ['error' => $e -> getMessage( )] );
+                Logger::error( 'Cache Config Import Error', ['error' => $e -> getMessage( )] );
                 // return failure
                 return false;
             }

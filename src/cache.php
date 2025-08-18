@@ -108,7 +108,7 @@ if ( ! class_exists( 'Cache' ) ) {
             self::$_initialized = true;
             
             // Log initialization if debug is set
-            LOG::debug( 'KPT Cache system initialized', [
+            Logger::debug( 'KPT Cache system initialized', [
                 'available_tiers' => self::getAvailableTiers( ),
                 'connection_pooling' => self::$_connection_pooling_enabled,
                 'async_enabled' => self::$_async_enabled
@@ -136,7 +136,7 @@ if ( ! class_exists( 'Cache' ) ) {
             // Reinitialize
             self::init( );
             
-            LOG::info( "Cache system reinitialized", [] );
+            Logger::info( "Cache system reinitialized", [] );
         }
 
         /**
@@ -185,7 +185,7 @@ if ( ! class_exists( 'Cache' ) ) {
             self::ensureHealthMonitorInitialized( );
 
             // debug
-            LOG::debug( "Cache Managers Initialized", ['key_manager' => $km_config,] );
+            Logger::debug( "Cache Managers Initialized", ['key_manager' => $km_config,] );
         }
 
         /**
@@ -248,7 +248,7 @@ if ( ! class_exists( 'Cache' ) ) {
             }
 
             // debug logging
-            LOG::debug( "Redis/Memcached Connection Pools Initialized", [] );
+            Logger::debug( "Redis/Memcached Connection Pools Initialized", [] );
 
         }
 
@@ -274,21 +274,21 @@ if ( ! class_exists( 'Cache' ) ) {
                 
                 if ( $global_path !== null ) {
                     $cache_path = $global_path;
-                    LOG::debug( "Using global cache path from config", ['path' => $cache_path] );
+                    Logger::debug( "Using global cache path from config", ['path' => $cache_path] );
                 } else {
                     $cache_path = self::$_fallback_path;
-                    LOG::debug( "No global path set, using default fallback", ['path' => $cache_path] );
+                    Logger::debug( "No global path set, using default fallback", ['path' => $cache_path] );
                 }
             }
             
             // Try to create and setup the cache directory
             if ( $cache_path !== null && self::createCacheDirectory( $cache_path ) ) {
                 self::$_fallback_path = $cache_path;
-                LOG::info( "Cache directory initialized", ['path' => self::$_fallback_path] );
+                Logger::info( "Cache directory initialized", ['path' => self::$_fallback_path] );
                 return;
             }
             
-            LOG::warning( "Preferred cache path failed, trying fallbacks", ['preferred' => $cache_path] );
+            Logger::warning( "Preferred cache path failed, trying fallbacks", ['preferred' => $cache_path] );
             
             // Rest of the fallback logic...
             $fallback_paths = [
@@ -301,11 +301,11 @@ if ( ! class_exists( 'Cache' ) ) {
             ];
             
             foreach ( $fallback_paths as $alt_path ) {
-                LOG::debug( "Trying fallback path", ['path' => $alt_path] );
+                Logger::debug( "Trying fallback path", ['path' => $alt_path] );
                 
                 if ( self::createCacheDirectory( $alt_path ) ) {
                     self::$_fallback_path = $alt_path;
-                    LOG::info( "Using fallback cache path", ['path' => $alt_path] );
+                    Logger::info( "Using fallback cache path", ['path' => $alt_path] );
                     return;
                 }
             }
@@ -315,14 +315,14 @@ if ( ! class_exists( 'Cache' ) ) {
             
             if ( self::createCacheDirectory( $temp_path ) ) {
                 self::$_fallback_path = $temp_path;
-                LOG::warning( "Using last resort cache path", ['path' => $temp_path] );
+                Logger::warning( "Using last resort cache path", ['path' => $temp_path] );
             } else {
-                LOG::error( "Unable to create any writable cache directory" );
+                Logger::error( "Unable to create any writable cache directory" );
                 
                 $available_tiers = self::getAvailableTiers( );
                 $key = array_search( self::TIER_FILE, $available_tiers );
                 if ( $key !== false ) {
-                    LOG::warning( "File tier disabled due to directory creation failure" );
+                    Logger::warning( "File tier disabled due to directory creation failure" );
                 }
             }
         }
@@ -350,7 +350,7 @@ if ( ! class_exists( 'Cache' ) ) {
 
                 // whoopsie... log the error
                 } catch ( \Exception $e ) {
-                    LOG::error( "Health Monitor initialization failed", ['error' => $e -> getMessage( )] );
+                    Logger::error( "Health Monitor initialization failed", ['error' => $e -> getMessage( )] );
                 }
             }
         }
@@ -370,13 +370,13 @@ if ( ! class_exists( 'Cache' ) ) {
             // Set global path if provided
             if ( isset( $config['path'] ) ) {
                 Cache_Config::setGlobalPath( $config['path'] );
-                LOG::debug( "Global cache path configured", ['path' => $config['path']] );
+                Logger::debug( "Global cache path configured", ['path' => $config['path']] );
             }
             
             // Set global prefix if provided
             if ( isset( $config['prefix'] ) ) {
                 Cache_Config::setGlobalPrefix( $config['prefix'] );
-                LOG::debug( "Global cache prefix configured", ['prefix' => $config['prefix']] );
+                Logger::debug( "Global cache prefix configured", ['prefix' => $config['prefix']] );
             }
             
             // Configure specific backends if provided
@@ -385,7 +385,7 @@ if ( ! class_exists( 'Cache' ) ) {
                 // loop the backends provided and set their configurations
                 foreach ( $config['backends'] as $backend => $backend_config ) {
                     Cache_Config::set( $backend, $backend_config );
-                    LOG::debug( "Backend configured", ['backend' => $backend] );
+                    Logger::debug( "Backend configured", ['backend' => $backend] );
                 }
             }
             
@@ -473,7 +473,7 @@ if ( ! class_exists( 'Cache' ) ) {
                 if ( $result !== false ) {
 
                     // Log cache hit
-                    LOG::debug( "Cache Hit", ['tier' => $tier, 'key' => $key] );
+                    Logger::debug( "Cache Hit", ['tier' => $tier, 'key' => $key] );
 
                     // Promote to higher tiers for faster future access
                     self::promoteToHigherTiers( $key, $result, $tier );
@@ -485,7 +485,7 @@ if ( ! class_exists( 'Cache' ) ) {
             }
             
             // Log cache miss
-            LOG::debug( "Cache Miss", [$key] );
+            Logger::debug( "Cache Miss", [$key] );
             
             // default return
             return false;
@@ -513,7 +513,7 @@ if ( ! class_exists( 'Cache' ) ) {
 
             // if there's no data, then there's nothing to do here... just return
             if ( empty( $data ) ) {
-                LOG::error( "Attempted to cache empty data", ['key' => $key] );
+                Logger::error( "Attempted to cache empty data", ['key' => $key] );
                 return false;
             }
             
@@ -541,11 +541,11 @@ if ( ! class_exists( 'Cache' ) ) {
                     }
                     
                     // Log successful set operation
-                    LOG::debug( "Cache item set", ['key' => $key, 'ttl' => $ttl, 'tier' => $tier] );
+                    Logger::debug( "Cache item set", ['key' => $key, 'ttl' => $ttl, 'tier' => $tier] );
                 } else {
 
                     // Log failed set operation
-                    LOG::error( "Failed to set cache item", ['key' => $key, 'ttl' => $ttl, 'tier' => $tier] );
+                    Logger::error( "Failed to set cache item", ['key' => $key, 'ttl' => $ttl, 'tier' => $tier] );
                 }
             }
             
@@ -587,11 +587,11 @@ if ( ! class_exists( 'Cache' ) ) {
                 // if the delete from the tier was not successful
                 if ( ! self::deleteFromTierInternal( $key, $tier ) ) {
                     $success = false;
-                    LOG::error( "Failed to delete cache item", ['key' => $key, 'tier' => $tier] );
+                    Logger::error( "Failed to delete cache item", ['key' => $key, 'tier' => $tier] );
 
                 // otherwise, debug log it
                 } else {
-                    LOG::debug( "Cache item deleted", ['key' => $key, 'tier' => $tier] );
+                    Logger::debug( "Cache item deleted", ['key' => $key, 'tier' => $tier] );
                 }
             }
             
@@ -627,11 +627,11 @@ if ( ! class_exists( 'Cache' ) ) {
                 // if clearing it was not successful
                 if ( ! self::clearTier( $tier ) ) {
                     $success = false;
-                    LOG::error( "Failed to clear tier", ['tier' => $tier] );
+                    Logger::error( "Failed to clear tier", ['tier' => $tier] );
 
                 // otherwise, debug log it
                 } else {
-                    LOG::debug( "Cache cleared", [$tier, 'all_keys'] );
+                    Logger::debug( "Cache cleared", [$tier, 'all_keys'] );
                 }
             }
             
@@ -659,13 +659,13 @@ if ( ! class_exists( 'Cache' ) ) {
             
             // do we have a valid tier?
             if ( ! Cache_TierManager::isTierValid( $tier ) ) {
-                LOG::error( "Invalid tier specified", ['tier' => $tier,'key' => $key] );
+                Logger::error( "Invalid tier specified", ['tier' => $tier,'key' => $key] );
                 return false;
             }
             
             // now... is the tier actually available?
             if ( ! Cache_TierManager::isTierAvailable( $tier ) ) {
-                LOG::error( "Tier not available", ['tier' => $tier,'key' => $key] );
+                Logger::error( "Tier not available", ['tier' => $tier,'key' => $key] );
                 return false;
             }
             
@@ -677,12 +677,12 @@ if ( ! class_exists( 'Cache' ) ) {
 
                 // set the last used and return the item
                 self::$_last_used_tier = $tier;
-                LOG::debug( "Cache Hit", ['tier' => $tier,'key' => $key] );
+                Logger::debug( "Cache Hit", ['tier' => $tier,'key' => $key] );
                 return $result;
             }
 
             // Fallback to default hierarchy if enabled and tier failed
-            LOG::debug( "Cache Miss", ['tier' => $tier,'key' => $key] );
+            Logger::debug( "Cache Miss", ['tier' => $tier,'key' => $key] );
             return self::get( $key );
 
         }
@@ -709,19 +709,19 @@ if ( ! class_exists( 'Cache' ) ) {
             
             // if it's a not valid tier
             if ( ! Cache_TierManager::isTierValid( $tier ) ) {
-                LOG::error( "Invalid tier specified", ['tier' => $tier,'key' => $key] );
+                Logger::error( "Invalid tier specified", ['tier' => $tier,'key' => $key] );
                 return false;
             }
             
             // if the tier is not available
             if ( ! Cache_TierManager::isTierAvailable( $tier ) ) {
-                LOG::error( "Tier not available", ['tier' => $tier,'key' => $key] );
+                Logger::error( "Tier not available", ['tier' => $tier,'key' => $key] );
                 return false;
             }
             
             // if we have no data
             if ( empty( $data ) ) {
-                LOG::warning( "Attempted to cache empty data", ['tier' => $tier,'key' => $key] );
+                Logger::warning( "Attempted to cache empty data", ['tier' => $tier,'key' => $key] );
                 return false;
             }
             
@@ -731,11 +731,11 @@ if ( ! class_exists( 'Cache' ) ) {
             // if it was successfully set
             if ( $success ) {
                 self::$_last_used_tier = $tier;
-                LOG::debug( "Cache Set", ['tier' => $tier,'key' => $key] );
+                Logger::debug( "Cache Set", ['tier' => $tier,'key' => $key] );
 
             // otherwise, log the error
             } else {
-                LOG::error( "Failed to set cache item", ['tier' => $tier,'key' => $key] );
+                Logger::error( "Failed to set cache item", ['tier' => $tier,'key' => $key] );
             }
             
             // return if it was true or not
@@ -762,13 +762,13 @@ if ( ! class_exists( 'Cache' ) ) {
             
             // if the tier is valid
             if ( ! Cache_TierManager::isTierValid( $tier ) ) {
-                LOG::error( "Invalid tier specified", ['tier' => $tier,'key' => $key] );
+                Logger::error( "Invalid tier specified", ['tier' => $tier,'key' => $key] );
                 return false;
             }
             
             // is the tier available
             if ( ! Cache_TierManager::isTierAvailable( $tier ) ) {
-                LOG::error( "Tier not available", 'tier_availability', ['tier' => $tier,'key' => $key] );
+                Logger::error( "Tier not available", 'tier_availability', ['tier' => $tier,'key' => $key] );
                 return false;
             }
             
@@ -778,9 +778,9 @@ if ( ! class_exists( 'Cache' ) ) {
             // if it was successful
             if ( $success ) {
                 self::$_last_used_tier = $tier;
-                LOG::debug( "Cache Deleted", ['tier' => $tier,'key' => $key] );
+                Logger::debug( "Cache Deleted", ['tier' => $tier,'key' => $key] );
             } else {
-                LOG::error( "Failed to delete cache item", ['tier' => $tier,'key' => $key] );
+                Logger::error( "Failed to delete cache item", ['tier' => $tier,'key' => $key] );
             }
             
             // return if it was successful or not
@@ -809,7 +809,7 @@ if ( ! class_exists( 'Cache' ) ) {
             
             // if we have no data, return an empty array
             if (empty($data)) {
-                LOG::warning( "Attempted to cache empty data to multiple tiers", ['tiers' => $tiers,'key' => $key] );
+                Logger::warning( "Attempted to cache empty data to multiple tiers", ['tiers' => $tiers,'key' => $key] );
                 return [];
             }
             
@@ -836,7 +836,7 @@ if ( ! class_exists( 'Cache' ) ) {
                 $success = self::setToTierInternal( $key, $data, $ttl, $tier );
 
                 // setup the results
-                $error_msg = $success ? null : LOG::getLastError();
+                $error_msg = $success ? null : Logger::getLastError();
                 $results[$tier] = ['success' => $success, 'error' => $error_msg];
                 
                 // if it was successful
@@ -850,9 +850,9 @@ if ( ! class_exists( 'Cache' ) ) {
                         self::$_last_used_tier = $tier;
                     }
                     
-                    LOG::debug( "Cache Set", ['tier' => $tier,'key' => $key] );
+                    Logger::debug( "Cache Set", ['tier' => $tier,'key' => $key] );
                 } else {
-                    LOG::error( "Failed to set cache item to tier in multi-tier operation", ['tier' => $tier,'key' => $key] );
+                    Logger::error( "Failed to set cache item to tier in multi-tier operation", ['tier' => $tier,'key' => $key] );
                 }
             }
             
@@ -908,15 +908,15 @@ if ( ! class_exists( 'Cache' ) ) {
                 $success = self::deleteFromTierInternal( $key, $tier );
 
                 // throw the results in the return array
-                $error_msg = $success ? null : LOG::getLastError();
+                $error_msg = $success ? null : Logger::getLastError();
                 $results[$tier] = ['success' => $success, 'error' => $error_msg];
                 
                 // if it was sucessful, increment the count
                 if ($success) {
                     $success_count++;
-                    LOG::debug( "Cache Deleted", ['tier' => $tier,'key' => $key] );
+                    Logger::debug( "Cache Deleted", ['tier' => $tier,'key' => $key] );
                 } else {
-                    LOG::error( "Failed to delete cache item from tier in multi-tier operation", ['tier' => $tier,'key' => $key]);
+                    Logger::error( "Failed to delete cache item from tier in multi-tier operation", ['tier' => $tier,'key' => $key]);
                 }
 
             }
@@ -1049,7 +1049,7 @@ if ( ! class_exists( 'Cache' ) ) {
          * @return string|null Returns the last error message or null if none
          */
         public static function getLastError( ): ?string {
-            return LOG::getLastError( );
+            return Logger::getLastError( );
         }
 
         /**
@@ -1097,7 +1097,7 @@ if ( ! class_exists( 'Cache' ) ) {
             self::$_shmop_segments = [];
             
             // log the close
-            LOG::info( "Cache system closed", ['system'] );
+            Logger::info( "Cache system closed", ['system'] );
         }
 
         /**
@@ -1313,11 +1313,11 @@ if ( ! class_exists( 'Cache' ) ) {
                 // Also update the file backend config to match
                 Cache_Config::setBackendPath( 'file', $path );
                 
-                LOG::debug( "Cache path updated", ['new_path' => $path] );
+                Logger::debug( "Cache path updated", ['new_path' => $path] );
                 return true;
             }
             
-            LOG::error( "Failed to set cache path", ['attempted_path' => $path] );
+            Logger::error( "Failed to set cache path", ['attempted_path' => $path] );
             return false;
         }
 
@@ -1418,11 +1418,11 @@ if ( ! class_exists( 'Cache' ) ) {
                 };
 
                 // debug log
-                LOG::debug( 'Cache Hit', ['tier' => $tier, 'key' => $key, 'tier_key' => $tier_key] );
+                Logger::debug( 'Cache Hit', ['tier' => $tier, 'key' => $key, 'tier_key' => $tier_key] );
             
             // whoopsie... log the error and return set the result to false
             } catch ( \Exception $e ) {
-                LOG::error( "Error getting from tier", [
+                Logger::error( "Error getting from tier", [
                     'error' => $e -> getMessage( ),
                     'tier' => $tier,
                     'key' => $key,
@@ -1471,7 +1471,7 @@ if ( ! class_exists( 'Cache' ) ) {
                 };
 
                 // debug logging
-                LOG::debug( 'Set to Tier', [
+                Logger::debug( 'Set to Tier', [
                     'tier' => $tier,
                     'key' => $key,
                     'tier_key' => $tier_key,
@@ -1480,7 +1480,7 @@ if ( ! class_exists( 'Cache' ) ) {
 
             // whoopsie... log the error set false
             } catch ( Exception $e ) {
-                LOG::error( "Error setting to tier {$tier}: " . $e -> getMessage( ), [
+                Logger::error( "Error setting to tier {$tier}: " . $e -> getMessage( ), [
                     'tier' => $tier,
                     'key' => $key,
                     'tier_key' => $tier_key,
@@ -1528,11 +1528,11 @@ if ( ! class_exists( 'Cache' ) ) {
                 };
 
             // debug log
-            LOG::debug( 'Delete From Tier', ['tier' => $tier, 'key' => $key, 'tier_key' => $tier_key] );
+            Logger::debug( 'Delete From Tier', ['tier' => $tier, 'key' => $key, 'tier_key' => $tier_key] );
 
             // whoopsie... log the error and set the result
             } catch ( Exception $e ) {
-                LOG::error( "Error deleting from tier", [
+                Logger::error( "Error deleting from tier", [
                     'error' => $e -> getMessage( ),
                     'tier' => $tier,
                     'key' => $key,
@@ -1580,7 +1580,7 @@ if ( ! class_exists( 'Cache' ) ) {
                 if ( $promote_success ) {
 
                     // log the promotion
-                    LOG::debug( "Cache Promoted", [
+                    Logger::debug( "Cache Promoted", [
                         'from_tier' => $current_tier,
                         'to_tier' => $available_tiers[$i]
                     ] );
@@ -1616,11 +1616,11 @@ if ( ! class_exists( 'Cache' ) ) {
                 };
 
             // debug log
-            LOG::debug( 'Clear Tier', ['tier' => $tier,] );
+            Logger::debug( 'Clear Tier', ['tier' => $tier,] );
 
             // whoopsie... log the error and set the result
             } catch ( Exception $e ) {
-                LOG::error( "Error deleting from tier", [
+                Logger::error( "Error deleting from tier", [
                     'error' => $e -> getMessage( ),
                     'tier' => $tier,
                 ] );
@@ -1668,11 +1668,11 @@ if ( ! class_exists( 'Cache' ) ) {
                     };
 
                 // debug log
-                LOG::debug( 'Cleanup Expired', ['tier' => $tier,] );
+                Logger::debug( 'Cleanup Expired', ['tier' => $tier,] );
 
                 // whoopsie... log the error and set the result
                 } catch ( Exception $e ) {
-                    LOG::error( "Error cleaning from tier", [
+                    Logger::error( "Error cleaning from tier", [
                         'error' => $e -> getMessage( ),
                         'tier' => $tier,
                     ] );
@@ -1682,7 +1682,7 @@ if ( ! class_exists( 'Cache' ) ) {
             }
             
             // log the completion
-            LOG::info( "Cleanup completed", ['expired_items_removed' => $count] );
+            Logger::info( "Cleanup completed", ['expired_items_removed' => $count] );
             
             // return the count
             return $result;
