@@ -304,7 +304,7 @@ if (! trait_exists('CacheFile')) {
          *
          * @return bool Returns true if all files cleared, false if some failed
          */
-        private static function clearFileCache(): bool
+        public static function clearFileCache(): bool
         {
 
             // get cache path and files
@@ -327,7 +327,14 @@ if (! trait_exists('CacheFile')) {
             return $success;
         }
 
-
+        /**
+         * Cleans up expires items from the cache
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return int Returns the number of items removed
+         */
         private static function cleanupFile(): int
         {
 

@@ -309,7 +309,7 @@ if (! trait_exists('CacheMySQL')) {
          *
          * @return bool Returns true if successful, false otherwise
          */
-        private static function clearMySQL(): bool
+        public static function clearMySQL(): bool
         {
 
             // get the database instance

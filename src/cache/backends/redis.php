@@ -695,8 +695,17 @@ if (! trait_exists('CacheRedis')) {
             }
         }
 
-
-        private static function clearRedis(): bool
+        /**
+         * Clear all items from redis cache
+         *
+         * Empties the entire redis cache.
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return bool Returns true on success, false on failure
+         */
+        public static function clearRedis(): bool
         {
 
             // see if we are utilizing connection pooling
@@ -745,7 +754,14 @@ if (! trait_exists('CacheRedis')) {
             return true;
         }
 
-
+        /**
+         * Cleans up expires items from the cache
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return int Returns the number of items removed
+         */        
         private static function cleanupRedis(): int
         {
 

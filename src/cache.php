@@ -1712,7 +1712,7 @@ if (! class_exists('Cache')) {
             }
 
             // log the completion
-            Logger::info("Cleanup completed", ['expired_items_removed' => $count]);
+            Logger::info("Cleanup completed", ['expired_items_removed' => $result]);
 
             // return the count
             return $result;

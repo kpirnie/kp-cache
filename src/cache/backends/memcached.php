@@ -1070,7 +1070,7 @@ if (! trait_exists('CacheMemcached')) {
          *
          * @return bool Returns true if successful, false otherwise
          */
-        private static function clearMemcached(): bool
+        public static function clearMemcached(): bool
         {
 
             // setup connection variables
@@ -1210,7 +1210,14 @@ if (! trait_exists('CacheMemcached')) {
             }
         }
 
-
+        /**
+         * Memcached does this automatically
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return int Returns the number of items removed
+         */
         private static function cleanupMemcached(): int
         {
 

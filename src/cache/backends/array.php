@@ -164,7 +164,7 @@ if (! trait_exists('CacheArray')) {
          *
          * @return bool Returns true on success, false on failure
          */
-        private static function clearArray(): bool
+        public static function clearArray(): bool
         {
 
             // try to clear the cache
