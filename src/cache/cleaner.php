@@ -100,7 +100,6 @@ if (!class_exists('KPT\CacheCleaner')) {
                 // Close connections
                 echo "Closing cache connections...\n";
                 Cache::close();
-
             } catch (Exception $e) {
                 echo "FATAL ERROR: " . $e->getMessage() . "\n";
                 return 1;
@@ -138,10 +137,10 @@ if (!class_exists('KPT\CacheCleaner')) {
                 // Clear each tier individually with error isolation
                 foreach ($availableTiers as $tier) {
                     echo "  Clearing {$tier}... ";
-                    
+
                     try {
                         $tierResult = Cache::clearSpecificTier($tier);
-                        
+
                         if ($tierResult) {
                             echo "SUCCESS\n";
                             $results['tiers_succeeded']++;
@@ -151,7 +150,6 @@ if (!class_exists('KPT\CacheCleaner')) {
                             $results['errors'][] = "Failed to clear tier: {$tier}";
                             $results['success'] = false;
                         }
-                        
                     } catch (Exception $e) {
                         echo "ERROR: " . $e->getMessage() . "\n";
                         $results['tiers_failed']++;
@@ -159,7 +157,6 @@ if (!class_exists('KPT\CacheCleaner')) {
                         $results['success'] = false;
                     }
                 }
-
             } catch (Exception $e) {
                 echo "FATAL ERROR during tier discovery: " . $e->getMessage() . "\n";
                 $results['success'] = false;
@@ -171,7 +168,7 @@ if (!class_exists('KPT\CacheCleaner')) {
             echo "  Attempted: {$results['tiers_attempted']}\n";
             echo "  Succeeded: {$results['tiers_succeeded']}\n";
             echo "  Failed: {$results['tiers_failed']}\n";
-            
+
             if (!empty($results['errors'])) {
                 echo "  Errors:\n";
                 foreach ($results['errors'] as $error) {
@@ -201,7 +198,6 @@ if (!class_exists('KPT\CacheCleaner')) {
             try {
                 $removed = Cache::cleanup();
                 $results['total_removed'] = $removed;
-                
             } catch (Exception $e) {
                 $results['success'] = false;
                 $results['errors'][] = "Cleanup error: " . $e->getMessage();
@@ -246,7 +242,7 @@ if (!class_exists('KPT\CacheCleaner')) {
 
             try {
                 $success = Cache::clearSpecificTier($tier);
-                
+
                 if ($success) {
                     echo "Successfully cleared tier: {$tier}\n";
                     $results['success'] = true;
@@ -255,7 +251,6 @@ if (!class_exists('KPT\CacheCleaner')) {
                     echo "ERROR: {$error}\n";
                     $results['errors'][] = $error;
                 }
-                
             } catch (Exception $e) {
                 $error = "Exception clearing tier {$tier}: " . $e->getMessage();
                 echo "ERROR: {$error}\n";
@@ -341,26 +336,24 @@ if (!class_exists('KPT\CacheCleaner')) {
         {
             // Check if ClassLoader exists (Composer is installed)
             if (!class_exists(ClassLoader::class)) {
-
                 // Try to find it by traversing directories
                 $dir = __DIR__;
                 $maxDepth = 10; // Safety limit
 
                 // loop the path until we find the vendor autoload
                 while ($dir !== '/' && $maxDepth-- > 0) {
-                
                     // Check for custom main.php first, then standard autoload.php
                     $customAutoloadPath = $dir . '/vendor/main.php';
                     $standardAutoloadPath = $dir . '/vendor/autoload.php';
-                    
+
                     if (file_exists($customAutoloadPath)) {
                         return $customAutoloadPath;
                     }
-                    
+
                     if (file_exists($standardAutoloadPath)) {
                         return $standardAutoloadPath;
                     }
-                    
+
                     $dir = dirname($dir);
                 }
 
@@ -371,15 +364,15 @@ if (!class_exists('KPT\CacheCleaner')) {
             // we need reflection here to get composer's autoloader ;)
             $reflection = new \ReflectionClass(ClassLoader::class);
             $vendorDir = dirname($reflection->getFileName(), 2);
-            
+
             // Check for custom main.php first, then standard autoload.php
             $customAutoloadPath = $vendorDir . '/main.php';
             $standardAutoloadPath = $vendorDir . '/autoload.php';
-            
+
             if (file_exists($customAutoloadPath)) {
                 return $customAutoloadPath;
             }
-            
+
             if (file_exists($standardAutoloadPath)) {
                 return $standardAutoloadPath;
             }
@@ -392,7 +385,6 @@ if (!class_exists('KPT\CacheCleaner')) {
 
 // CLI execution if called directly
 if (php_sapi_name() === 'cli' && isset($argv) && realpath($argv[0]) === realpath(__FILE__)) {
-    
     // clean the cache
     exit(CacheCleaner::cli());
 }

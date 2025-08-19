@@ -654,7 +654,6 @@ if (! class_exists('Cache')) {
                         Logger::error("Failed to clear tier", ['tier' => $tier]);
                         $overall_success = false;
                     }
-
                 } catch (\Exception $e) {
                     // Log the exception but continue with other tiers
                     Logger::error("Exception while clearing tier", [
@@ -662,7 +661,7 @@ if (! class_exists('Cache')) {
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString()
                     ]);
-                    
+
                     $results[$tier] = false;
                     $overall_success = false;
                 }
@@ -670,7 +669,9 @@ if (! class_exists('Cache')) {
 
             // Log final results
             $successful_tiers = array_keys(array_filter($results));
-            $failed_tiers = array_keys(array_filter($results, function($success) { return !$success; }));
+            $failed_tiers = array_keys(array_filter($results, function ($success) {
+                return !$success;
+            }));
 
             Logger::info("Cache clear operation completed", [
                 'overall_success' => $overall_success,
@@ -711,15 +712,14 @@ if (! class_exists('Cache')) {
             // try to clear the tier with error isolation
             try {
                 $result = self::clearTier($tier);
-                
+
                 if ($result) {
                     Logger::info("Successfully cleared tier", ['tier' => $tier]);
                 } else {
                     Logger::error("Failed to clear tier", ['tier' => $tier]);
                 }
-                
+
                 return $result;
-                
             } catch (\Exception $e) {
                 Logger::error("Exception while clearing tier", [
                     'tier' => $tier,
@@ -1792,6 +1792,5 @@ if (! class_exists('Cache')) {
             // return the count
             return $result;
         }
-
     }
 }

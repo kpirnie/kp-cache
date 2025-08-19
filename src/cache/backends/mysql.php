@@ -93,7 +93,6 @@ if (! trait_exists('CacheMySQL')) {
 
                 // return the database instance
                 return self::$_mysql_db;
-
             } catch (\PDOException $e) {
                 // Handle PDO-specific errors (connection issues, etc.)
                 self::$_mysql_last_error = "MySQL PDO connection failed: " . $e->getMessage();
@@ -103,7 +102,6 @@ if (! trait_exists('CacheMySQL')) {
                 ]);
                 self::$_mysql_db = null;
                 return null;
-
             } catch (\Exception $e) {
                 // Handle general database errors
                 self::$_mysql_last_error = "MySQL connection failed: " . $e->getMessage();
@@ -159,7 +157,6 @@ if (! trait_exists('CacheMySQL')) {
 
                 // return success status
                 return $result !== false;
-
             } catch (\PDOException $e) {
                 // Handle PDO-specific errors
                 self::$_mysql_last_error = "MySQL clear PDO error: " . $e->getMessage();
@@ -169,7 +166,6 @@ if (! trait_exists('CacheMySQL')) {
                     'sql_state' => $e->getCode()
                 ]);
                 return false;
-
             } catch (\Exception $e) {
                 // Handle general errors
                 self::$_mysql_last_error = "MySQL clear error: " . $e->getMessage();

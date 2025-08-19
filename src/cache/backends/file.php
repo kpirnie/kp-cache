@@ -185,7 +185,7 @@ if (! trait_exists('CacheFile')) {
                 try {
                     // Read file contents
                     $data = file_get_contents($file);
-                    
+
                     if ($data === false || strlen($data) < 10) {
                         return false;
                     }
@@ -202,7 +202,6 @@ if (! trait_exists('CacheFile')) {
 
                     // Return the unserialized data
                     return unserialize(substr($data, 10));
-
                 } catch (\Exception $e) {
                     self::$_last_error = "File cache read error: " . $e->getMessage();
                     return false;
@@ -212,7 +211,7 @@ if (! trait_exists('CacheFile')) {
             // file doesn't exist
             return false;
         }
-        
+
         /**
          * Set item to file cache
          *
@@ -239,7 +238,6 @@ if (! trait_exists('CacheFile')) {
                 // Write with exclusive lock
                 $result = file_put_contents($file, $data, LOCK_EX);
                 return $result !== false;
-
             } catch (\Exception $e) {
                 self::$_last_error = "File cache write error: " . $e->getMessage();
                 return false;
