@@ -63,7 +63,7 @@ if (!class_exists('KPT\CacheCleaner')) {
             } else {
                 die('Composer autoload.php not found!');
             }
-            
+
             // hold our CLI arguments
             $args = self::parseArguments();
 
@@ -76,14 +76,12 @@ if (!class_exists('KPT\CacheCleaner')) {
 
                     // close the cache connections
                     Cache::close();
-
                 }
 
                 // if we have the cleanup
                 if (isset($args['cleanup']) && $args['cleanup']) {
                     // clear all caches
                     Cache::cleanup();
-
                 }
 
                 // if the clear tier argument is set
@@ -96,13 +94,11 @@ if (!class_exists('KPT\CacheCleaner')) {
                     if (in_array($tier, $validTiers)) {
                         // clear the tiers cache
                         Cache::clearTier($tier);
-
                     }
                 }
 
             // whoopsie...
             } catch (Exception $e) {
-                
                 // Return error code
                 return 1;
             }
@@ -157,11 +153,10 @@ if (!class_exists('KPT\CacheCleaner')) {
         {
             // Check if ClassLoader exists (Composer is installed)
             if (!class_exists(ClassLoader::class)) {
-
                 // Try to find it by traversing directories
                 $dir = __DIR__;
                 $maxDepth = 10; // Safety limit
-                
+
                 // loop the path until we find the vender autoload
                 while ($dir !== '/' && $maxDepth-- > 0) {
                     $autoloadPath = $dir . '/vendor/autoload.php';
@@ -170,21 +165,21 @@ if (!class_exists('KPT\CacheCleaner')) {
                     }
                     $dir = dirname($dir);
                 }
-                
+
                 // cant find it at all... throw an exception
                 throw new RuntimeException('Composer ClassLoader not found. Make sure Composer dependencies are installed.');
             }
-            
+
             // we need reflection here to get composer's autoloader ;)
             $reflection = new \ReflectionClass(ClassLoader::class);
             $vendorDir = dirname($reflection->getFileName(), 2);
             $autoloadPath = $vendorDir . '/autoload.php';
-            
+
             // if the file does not exist, throw an exception
             if (!file_exists($autoloadPath)) {
                 throw new RuntimeException('Composer autoload.php not found at: ' . $autoloadPath);
             }
-            
+
             // return the path
             return $autoloadPath;
         }
@@ -193,7 +188,6 @@ if (!class_exists('KPT\CacheCleaner')) {
 
 // CLI execution if called directly
 if (php_sapi_name() === 'cli' && isset($argv) && realpath($argv[0]) === realpath(__FILE__)) {
-    
     // clean the cache
     exit(CacheCleaner::cli());
 }

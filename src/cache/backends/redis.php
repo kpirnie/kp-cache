@@ -761,7 +761,7 @@ if (! trait_exists('CacheRedis')) {
          * @author Kevin Pirnie <me@kpirnie.com>
          *
          * @return int Returns the number of items removed
-         */        
+         */
         private static function cleanupRedis(): int
         {
 

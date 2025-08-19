@@ -258,7 +258,7 @@ if (! trait_exists('CacheSHMOP')) {
          * @author Kevin Pirnie <me@kpirnie.com>
          *
          * @return bool Returns success or not
-         */        
+         */
         public static function clearShmop(): bool
         {
             $success = true;

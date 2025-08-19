@@ -64,13 +64,13 @@ if (! trait_exists('CacheMySQL')) {
             try {
                 // get mysql configuration
                 $config = CacheConfig::get('mysql');
-                
+
                 // build database settings object if provided in config
                 $db_settings = null;
                 if (isset($config['db_settings']) && is_array($config['db_settings'])) {
                     $db_settings = (object) $config['db_settings'];
                 }
-                
+
                 // create new database instance with settings
                 self::$_mysql_db = new Database($db_settings);
 
