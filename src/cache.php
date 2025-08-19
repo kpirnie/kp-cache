@@ -616,43 +616,118 @@ if (! class_exists('Cache')) {
         }
 
         /**
-         * Clear all cached data from all tiers
+         * Clear all cached data from all tiers (IMPROVED with error isolation)
          *
          * Performs a complete cache flush across all available tiers. This is a
-         * destructive operation that removes all cached data.
+         * destructive operation that removes all cached data. Each tier is cleared
+         * independently so failures in one tier don't prevent others from being cleared.
          *
          * @since 8.4
          * @author Kevin Pirnie <me@kpirnie.com>
          *
-         * @return bool Returns true if all tiers cleared successfully, false if any failed
+         * @return bool Returns true if ALL tiers cleared successfully, false if ANY failed
          */
         public static function clear(): bool
         {
-
             // make sure we're initialized
             self::ensureInitialized();
 
-            // default success
-            $success = true;
+            // Track overall success and individual results
+            $overall_success = true;
+            $results = [];
 
             // grab all available tiers
             $available_tiers = self::getAvailableTiers();
 
-            // loop through each tier
-            foreach ($available_tiers as $tier) {
-                // if clearing it was not successful
-                if (! self::clearTier($tier)) {
-                    $success = false;
-                    Logger::error("Failed to clear tier", ['tier' => $tier]);
+            Logger::info("Starting cache clear operation", ['tiers' => $available_tiers]);
 
-                // otherwise, debug log it
-                } else {
-                    Logger::debug("Cache cleared", [$tier, 'all_keys']);
+            // loop through each tier with error isolation
+            foreach ($available_tiers as $tier) {
+                try {
+                    // Clear this tier independently
+                    $tier_success = self::clearTier($tier);
+                    $results[$tier] = $tier_success;
+
+                    if ($tier_success) {
+                        Logger::debug("Successfully cleared tier", ['tier' => $tier]);
+                    } else {
+                        Logger::error("Failed to clear tier", ['tier' => $tier]);
+                        $overall_success = false;
+                    }
+
+                } catch (\Exception $e) {
+                    // Log the exception but continue with other tiers
+                    Logger::error("Exception while clearing tier", [
+                        'tier' => $tier,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    
+                    $results[$tier] = false;
+                    $overall_success = false;
                 }
             }
 
-            // return the success
-            return $success;
+            // Log final results
+            $successful_tiers = array_keys(array_filter($results));
+            $failed_tiers = array_keys(array_filter($results, function($success) { return !$success; }));
+
+            Logger::info("Cache clear operation completed", [
+                'overall_success' => $overall_success,
+                'successful_tiers' => $successful_tiers,
+                'failed_tiers' => $failed_tiers,
+                'total_attempted' => count($available_tiers)
+            ]);
+
+            return $overall_success;
+        }
+
+        /**
+         * Clear a specific cache tier (public wrapper)
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param string $tier The tier to clear
+         * @return bool Returns true if tier was cleared successfully
+         */
+        public static function clearSpecificTier(string $tier): bool
+        {
+            // make sure we're initialized
+            self::ensureInitialized();
+
+            // validate tier
+            if (!CacheTierManager::isTierValid($tier)) {
+                Logger::error("Invalid tier specified for clearing", ['tier' => $tier]);
+                return false;
+            }
+
+            // check if tier is available
+            if (!CacheTierManager::isTierAvailable($tier)) {
+                Logger::warning("Tier not available for clearing", ['tier' => $tier]);
+                return true; // Consider unavailable tiers as "cleared"
+            }
+
+            // try to clear the tier with error isolation
+            try {
+                $result = self::clearTier($tier);
+                
+                if ($result) {
+                    Logger::info("Successfully cleared tier", ['tier' => $tier]);
+                } else {
+                    Logger::error("Failed to clear tier", ['tier' => $tier]);
+                }
+                
+                return $result;
+                
+            } catch (\Exception $e) {
+                Logger::error("Exception while clearing tier", [
+                    'tier' => $tier,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return false;
+            }
         }
 
         /**
@@ -1717,5 +1792,143 @@ if (! class_exists('Cache')) {
             // return the count
             return $result;
         }
+
+        /**
+ * Diagnose MySQL connection issues
+ *
+ * Provides detailed diagnostic information about MySQL configuration
+ * and connection problems to help troubleshoot cache issues.
+ *
+ * @since 8.4
+ * @author Kevin Pirnie <me@kpirnie.com>
+ *
+ * @return array Returns comprehensive diagnostic information
+ */
+public static function diagnoseMySQLConnection(): array
+{
+    $diagnostic = [
+        'timestamp' => date('Y-m-d H:i:s'),
+        'database_class_available' => class_exists('\KPT\Database'),
+        'pdo_available' => class_exists('PDO'),
+        'mysql_driver_available' => false,
+        'configuration' => [],
+        'connection_test' => [],
+        'recommendations' => []
+    ];
+
+    // Check PDO MySQL driver
+    if ($diagnostic['pdo_available']) {
+        $diagnostic['mysql_driver_available'] = in_array('mysql', \PDO::getAvailableDrivers());
+        $diagnostic['available_drivers'] = \PDO::getAvailableDrivers();
+    }
+
+    // Get current configuration
+    try {
+        $config = CacheConfig::get('mysql');
+        $diagnostic['configuration'] = [
+            'table_name' => $config['table_name'] ?? 'kpt_cache',
+            'has_db_settings' => isset($config['db_settings']) && is_array($config['db_settings']),
+            'db_settings_count' => isset($config['db_settings']) ? count($config['db_settings']) : 0
+        ];
+
+        // Mask sensitive information but show structure
+        if (isset($config['db_settings'])) {
+            $masked_settings = [];
+            foreach ($config['db_settings'] as $key => $value) {
+                if (in_array($key, ['password', 'passwd'])) {
+                    $masked_settings[$key] = $value ? '[SET]' : '[EMPTY]';
+                } else {
+                    $masked_settings[$key] = $value;
+                }
+            }
+            $diagnostic['configuration']['db_settings_structure'] = $masked_settings;
+        }
+
+    } catch (\Exception $e) {
+        $diagnostic['configuration']['error'] = $e->getMessage();
+    }
+
+    // Test connection
+    if ($diagnostic['database_class_available']) {
+        try {
+            $config = CacheConfig::get('mysql');
+            $db_settings = null;
+            
+            if (isset($config['db_settings']) && is_array($config['db_settings'])) {
+                $db_settings = (object) $config['db_settings'];
+            }
+
+            // Attempt connection
+            $start_time = microtime(true);
+            $test_db = new Database($db_settings);
+            $connection_time = microtime(true) - $start_time;
+
+            // Test query
+            $query_start = microtime(true);
+            $result = $test_db->raw('SELECT 1 as test, NOW() as server_time');
+            $query_time = microtime(true) - $query_start;
+
+            $diagnostic['connection_test'] = [
+                'success' => !empty($result),
+                'connection_time' => round($connection_time * 1000, 2) . 'ms',
+                'query_time' => round($query_time * 1000, 2) . 'ms',
+                'server_time' => $result[0]->server_time ?? 'unknown',
+                'result_count' => count($result ?? [])
+            ];
+
+        } catch (\PDOException $e) {
+            $diagnostic['connection_test'] = [
+                'success' => false,
+                'error_type' => 'PDOException',
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'sql_state' => method_exists($e, 'errorInfo') ? $e->errorInfo[0] ?? 'unknown' : 'unknown'
+            ];
+
+            // Specific recommendations for common PDO errors
+            $error_msg = $e->getMessage();
+            if (strpos($error_msg, 'No such file or directory') !== false) {
+                $diagnostic['recommendations'][] = 'MySQL socket file not found. Check if MySQL is running.';
+                $diagnostic['recommendations'][] = 'Verify MySQL socket path in configuration.';
+                $diagnostic['recommendations'][] = 'Try using TCP connection instead of socket (host=127.0.0.1).';
+            } elseif (strpos($error_msg, 'Connection refused') !== false) {
+                $diagnostic['recommendations'][] = 'MySQL server is not accepting connections.';
+                $diagnostic['recommendations'][] = 'Check if MySQL service is running.';
+                $diagnostic['recommendations'][] = 'Verify host and port configuration.';
+            } elseif (strpos($error_msg, 'Access denied') !== false) {
+                $diagnostic['recommendations'][] = 'Database authentication failed.';
+                $diagnostic['recommendations'][] = 'Check username and password in db_settings.';
+                $diagnostic['recommendations'][] = 'Verify user has access to the specified database.';
+            }
+
+        } catch (\Exception $e) {
+            $diagnostic['connection_test'] = [
+                'success' => false,
+                'error_type' => get_class($e),
+                'error_message' => $e->getMessage()
+            ];
+        }
+    }
+
+    // General recommendations
+    if (!$diagnostic['database_class_available']) {
+        $diagnostic['recommendations'][] = 'Database class not available. Check if KPT Database library is installed.';
+    }
+
+    if (!$diagnostic['pdo_available']) {
+        $diagnostic['recommendations'][] = 'PDO extension not available. Install php-pdo.';
+    }
+
+    if (!$diagnostic['mysql_driver_available']) {
+        $diagnostic['recommendations'][] = 'MySQL PDO driver not available. Install php-pdo-mysql.';
+    }
+
+    if (empty($diagnostic['configuration']['db_settings_structure'] ?? [])) {
+        $diagnostic['recommendations'][] = 'No database settings configured. Set mysql.db_settings in cache config.';
+    }
+
+    return $diagnostic;
+}
+
     }
 }

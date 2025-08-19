@@ -1,10 +1,10 @@
 <?php
 
 /**
- * KPT Cache Cleaner - Comprehensive Cache Management Utility
+ * KPT Cache Cleaner - Comprehensive Cache Management Utility (IMPROVED)
  *
  * A utility class for clearing and managing cache across all tiers with support
- * for CLI usage, selective clearing, and detailed reporting.
+ * for CLI usage, selective clearing, detailed reporting, and robust error handling.
  *
  * @since 8.4
  * @author Kevin Pirnie <me@kpirnie.com>
@@ -37,7 +37,7 @@ if (!class_exists('KPT\CacheCleaner')) {
      * Cache Cleaner - Comprehensive Cache Management Utility
      *
      * Provides methods for clearing cache data across all tiers with support
-     * for CLI operations, selective clearing, and detailed reporting.
+     * for CLI operations, selective clearing, detailed reporting, and improved error isolation.
      *
      * @since 8.4
      * @author Kevin Pirnie <me@kpirnie.com>
@@ -61,49 +61,208 @@ if (!class_exists('KPT\CacheCleaner')) {
             if ($autoloadPath && file_exists($autoloadPath)) {
                 include_once $autoloadPath;
             } else {
-                die('Composer autoload.php not found!');
+                echo "ERROR: Composer autoload.php not found!\n";
+                return 1;
             }
 
             // hold our CLI arguments
             $args = self::parseArguments();
+            $hasErrors = false;
 
-            // try to run out cleaning
+            echo "KPT Cache Cleaner Starting...\n";
+
             try {
-                // if we have the clear_all
+                // if we have the clear_all flag
                 if (isset($args['clear_all']) && $args['clear_all']) {
-                    // clear all caches
-                    Cache::clear();
-
-                    // close the cache connections
-                    Cache::close();
+                    echo "Clearing all cache tiers...\n";
+                    $result = self::clearAllWithReporting();
+                    $hasErrors = !$result['success'];
                 }
 
-                // if we have the cleanup
+                // if we have the cleanup flag
                 if (isset($args['cleanup']) && $args['cleanup']) {
-                    // clear all caches
-                    Cache::cleanup();
+                    echo "Running cache cleanup (expired items)...\n";
+                    $cleaned = self::cleanupWithReporting();
+                    echo "Cleanup completed. Removed {$cleaned['total_removed']} expired items.\n";
+                    if (!$cleaned['success']) {
+                        $hasErrors = true;
+                    }
                 }
 
                 // if the clear tier argument is set
                 if (isset($args['clear_tier'])) {
-                    // hold our tiers, and the chosen one
-                    $validTiers = CacheTierManager::getValidTiers();
                     $tier = $args['clear_tier'];
-
-                    // if the argument is in the list of tiers
-                    if (in_array($tier, $validTiers)) {
-                        // clear the tiers cache
-                        Cache::clearTier($tier);
-                    }
+                    echo "Clearing tier: {$tier}...\n";
+                    $result = self::clearSpecificTierWithReporting($tier);
+                    $hasErrors = !$result['success'];
                 }
 
-            // whoopsie...
+                // Close connections
+                echo "Closing cache connections...\n";
+                Cache::close();
+
             } catch (Exception $e) {
-                // Return error code
+                echo "FATAL ERROR: " . $e->getMessage() . "\n";
                 return 1;
             }
 
-            return 0;
+            echo "Cache cleaning completed " . ($hasErrors ? "with errors" : "successfully") . ".\n";
+            return $hasErrors ? 1 : 0;
+        }
+
+        /**
+         * Clear all cache tiers with detailed reporting
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return array Results with success status and details
+         */
+        private static function clearAllWithReporting(): array
+        {
+            $results = [
+                'success' => true,
+                'tiers_attempted' => 0,
+                'tiers_succeeded' => 0,
+                'tiers_failed' => 0,
+                'errors' => []
+            ];
+
+            try {
+                // Get available tiers
+                $availableTiers = CacheTierManager::getAvailableTiers();
+                $results['tiers_attempted'] = count($availableTiers);
+
+                echo "Found " . count($availableTiers) . " available tiers: " . implode(', ', $availableTiers) . "\n";
+
+                // Clear each tier individually with error isolation
+                foreach ($availableTiers as $tier) {
+                    echo "  Clearing {$tier}... ";
+                    
+                    try {
+                        $tierResult = Cache::clearSpecificTier($tier);
+                        
+                        if ($tierResult) {
+                            echo "SUCCESS\n";
+                            $results['tiers_succeeded']++;
+                        } else {
+                            echo "FAILED\n";
+                            $results['tiers_failed']++;
+                            $results['errors'][] = "Failed to clear tier: {$tier}";
+                            $results['success'] = false;
+                        }
+                        
+                    } catch (Exception $e) {
+                        echo "ERROR: " . $e->getMessage() . "\n";
+                        $results['tiers_failed']++;
+                        $results['errors'][] = "Exception clearing {$tier}: " . $e->getMessage();
+                        $results['success'] = false;
+                    }
+                }
+
+            } catch (Exception $e) {
+                echo "FATAL ERROR during tier discovery: " . $e->getMessage() . "\n";
+                $results['success'] = false;
+                $results['errors'][] = "Fatal error: " . $e->getMessage();
+            }
+
+            // Report summary
+            echo "\nClear All Summary:\n";
+            echo "  Attempted: {$results['tiers_attempted']}\n";
+            echo "  Succeeded: {$results['tiers_succeeded']}\n";
+            echo "  Failed: {$results['tiers_failed']}\n";
+            
+            if (!empty($results['errors'])) {
+                echo "  Errors:\n";
+                foreach ($results['errors'] as $error) {
+                    echo "    - {$error}\n";
+                }
+            }
+
+            return $results;
+        }
+
+        /**
+         * Clean up expired items with reporting
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return array Results with counts and status
+         */
+        private static function cleanupWithReporting(): array
+        {
+            $results = [
+                'success' => true,
+                'total_removed' => 0,
+                'errors' => []
+            ];
+
+            try {
+                $removed = Cache::cleanup();
+                $results['total_removed'] = $removed;
+                
+            } catch (Exception $e) {
+                $results['success'] = false;
+                $results['errors'][] = "Cleanup error: " . $e->getMessage();
+                echo "ERROR during cleanup: " . $e->getMessage() . "\n";
+            }
+
+            return $results;
+        }
+
+        /**
+         * Clear a specific tier with reporting
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param string $tier The tier to clear
+         * @return array Results with success status
+         */
+        private static function clearSpecificTierWithReporting(string $tier): array
+        {
+            $results = [
+                'success' => false,
+                'tier' => $tier,
+                'errors' => []
+            ];
+
+            // Validate tier first
+            $validTiers = CacheTierManager::getValidTiers();
+            if (!in_array($tier, $validTiers)) {
+                $error = "Invalid tier '{$tier}'. Valid tiers: " . implode(', ', $validTiers);
+                echo "ERROR: {$error}\n";
+                $results['errors'][] = $error;
+                return $results;
+            }
+
+            // Check if tier is available
+            if (!CacheTierManager::isTierAvailable($tier)) {
+                echo "WARNING: Tier '{$tier}' is not available on this system.\n";
+                $results['success'] = true; // Consider unavailable as "cleared"
+                return $results;
+            }
+
+            try {
+                $success = Cache::clearSpecificTier($tier);
+                
+                if ($success) {
+                    echo "Successfully cleared tier: {$tier}\n";
+                    $results['success'] = true;
+                } else {
+                    $error = "Failed to clear tier: {$tier}";
+                    echo "ERROR: {$error}\n";
+                    $results['errors'][] = $error;
+                }
+                
+            } catch (Exception $e) {
+                $error = "Exception clearing tier {$tier}: " . $e->getMessage();
+                echo "ERROR: {$error}\n";
+                $results['errors'][] = $error;
+            }
+
+            return $results;
         }
 
         /**
@@ -132,12 +291,41 @@ if (!class_exists('KPT\CacheCleaner')) {
                         $options['clear_tier'] = $tier;
                     } elseif ($arg === '--cleanup') {
                         $options['cleanup'] = true;
+                    } elseif ($arg === '--help' || $arg === '-h') {
+                        self::showHelp();
+                        exit(0);
                     }
                 }
+            } else {
+                self::showHelp();
+                exit(0);
             }
 
             // return the options
             return $options;
+        }
+
+        /**
+         * Show help information
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return void
+         */
+        private static function showHelp(): void
+        {
+            echo "KPT Cache Cleaner\n";
+            echo "Usage: php cleaner.php [OPTIONS]\n\n";
+            echo "OPTIONS:\n";
+            echo "  --clear_all              Clear all cache tiers\n";
+            echo "  --clear_tier=TIER        Clear specific tier (array, redis, memcached, etc.)\n";
+            echo "  --cleanup                Clean up expired items from all tiers\n";
+            echo "  --help, -h               Show this help message\n\n";
+            echo "Examples:\n";
+            echo "  php cleaner.php --clear_all\n";
+            echo "  php cleaner.php --clear_tier=redis\n";
+            echo "  php cleaner.php --cleanup\n";
         }
 
         /**
