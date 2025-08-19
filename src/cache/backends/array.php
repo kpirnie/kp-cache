@@ -197,7 +197,7 @@ if (! trait_exists('CacheArray')) {
          *
          * @return array Returns array cache statistics
          */
-        private static function getArrayStats(): array
+        public static function getArrayStats(): array
         {
 
             // calculate memory usage

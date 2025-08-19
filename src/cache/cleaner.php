@@ -337,45 +337,62 @@ if (!class_exists('KPT\CacheCleaner')) {
          * @return string Path to autoload.php
          * @throws RuntimeException If autoload.php cannot be found
          */
-        private static function getComposerAutoloadPath(): string
+        public static function getComposerAutoloadPath(): string
         {
             // Check if ClassLoader exists (Composer is installed)
             if (!class_exists(ClassLoader::class)) {
+
                 // Try to find it by traversing directories
                 $dir = __DIR__;
                 $maxDepth = 10; // Safety limit
 
-                // loop the path until we find the vender autoload
+                // loop the path until we find the vendor autoload
                 while ($dir !== '/' && $maxDepth-- > 0) {
-                    $autoloadPath = $dir . '/vendor/autoload.php';
-                    if (file_exists($autoloadPath)) {
-                        return $autoloadPath;
+                
+                    // Check for custom main.php first, then standard autoload.php
+                    $customAutoloadPath = $dir . '/vendor/main.php';
+                    $standardAutoloadPath = $dir . '/vendor/autoload.php';
+                    
+                    if (file_exists($customAutoloadPath)) {
+                        return $customAutoloadPath;
                     }
+                    
+                    if (file_exists($standardAutoloadPath)) {
+                        return $standardAutoloadPath;
+                    }
+                    
                     $dir = dirname($dir);
                 }
 
                 // cant find it at all... throw an exception
-                throw new RuntimeException('Composer ClassLoader not found. Make sure Composer dependencies are installed.');
+                throw new RuntimeException('Composer autoloader not found. Make sure Composer dependencies are installed.');
             }
 
             // we need reflection here to get composer's autoloader ;)
             $reflection = new \ReflectionClass(ClassLoader::class);
             $vendorDir = dirname($reflection->getFileName(), 2);
-            $autoloadPath = $vendorDir . '/autoload.php';
-
-            // if the file does not exist, throw an exception
-            if (!file_exists($autoloadPath)) {
-                throw new RuntimeException('Composer autoload.php not found at: ' . $autoloadPath);
+            
+            // Check for custom main.php first, then standard autoload.php
+            $customAutoloadPath = $vendorDir . '/main.php';
+            $standardAutoloadPath = $vendorDir . '/autoload.php';
+            
+            if (file_exists($customAutoloadPath)) {
+                return $customAutoloadPath;
+            }
+            
+            if (file_exists($standardAutoloadPath)) {
+                return $standardAutoloadPath;
             }
 
-            // return the path
-            return $autoloadPath;
+            // if neither file exists, throw an exception
+            throw new RuntimeException('Composer autoloader not found at: ' . $vendorDir);
         }
     }
 }
 
 // CLI execution if called directly
 if (php_sapi_name() === 'cli' && isset($argv) && realpath($argv[0]) === realpath(__FILE__)) {
+    
     // clean the cache
     exit(CacheCleaner::cli());
 }

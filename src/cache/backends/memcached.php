@@ -367,7 +367,9 @@ if (! trait_exists('CacheMemcached')) {
                 }
 
                 // delete the item
-                $result = $connection -> delete($_key);
+                $config = CacheConfig::get('memcached');
+                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $result = $connection -> delete($prefixed_key);
 
                 // Consider it successful if key was deleted OR if key didn't exist
                 if ($result || $connection -> getResultCode() === \Memcached::RES_NOTFOUND) {
