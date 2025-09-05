@@ -1533,6 +1533,12 @@ if (! class_exists('Cache')) {
             // default results
             $result = false;
 
+            // get the allowed backends and check if this one is indeed allowed
+            $allowed_backends = CacheConfig::getAllowedBackends( );
+            if ( ! in_array( $tier, $allowed_backends ) ) {
+                return false;
+            }
+
             // try to get a result from a tier
             try {
                 // match the tier
@@ -1585,6 +1591,15 @@ if (! class_exists('Cache')) {
 
             // Generate the appropriate key for this tier
             $tier_key = CacheKeyManager::generateKey($key, $tier);
+
+            // default results
+            $result = false;
+
+            // get the allowed backends and check if this one is indeed allowed
+            $allowed_backends = CacheConfig::getAllowedBackends( );
+            if ( ! in_array( $tier, $allowed_backends ) ) {
+                return false;
+            }
 
             // try to match the tier to the internal method
             try {
@@ -1645,6 +1660,15 @@ if (! class_exists('Cache')) {
 
             // Generate the appropriate key for this tier
             $tier_key = CacheKeyManager::generateKey($key, $tier);
+
+            // default results
+            $result = false;
+
+            // get the allowed backends and check if this one is indeed allowed
+            $allowed_backends = CacheConfig::getAllowedBackends( );
+            if ( ! in_array( $tier, $allowed_backends ) ) {
+                return false;
+            }
 
             // try to match the tier to the internal method
             try {
@@ -1736,6 +1760,15 @@ if (! class_exists('Cache')) {
         private static function clearTier(string $tier): bool
         {
 
+            // default results
+            $result = false;
+
+            // get the allowed backends and check if this one is indeed allowed
+            $allowed_backends = CacheConfig::getAllowedBackends( );
+            if ( ! in_array( $tier, $allowed_backends ) ) {
+                return false;
+            }
+
             // try to match the tier to the internal method
             try {
                 $result = match ($tier) {
@@ -1753,7 +1786,7 @@ if (! class_exists('Cache')) {
                 };
 
             // debug log
-                Logger::debug('Clear Tier', ['tier' => $tier,]);
+            Logger::debug('Clear Tier', ['tier' => $tier,]);
 
             // whoopsie... log the error and set the result
             } catch (Exception $e) {
@@ -1787,6 +1820,13 @@ if (! class_exists('Cache')) {
 
             // loop over them
             foreach ($available_tiers as $tier) {
+
+                // get the allowed backends and check if this one is indeed allowed
+                $allowed_backends = CacheConfig::getAllowedBackends( );
+                if ( ! in_array( $tier, $allowed_backends ) ) {
+                    continue;
+                }
+                
                 // try to match the tier to the internal method
                 try {
                     $result += match ($tier) {
@@ -1804,7 +1844,7 @@ if (! class_exists('Cache')) {
                     };
 
                 // debug log
-                    Logger::debug('Cleanup Expired', ['tier' => $tier,]);
+                Logger::debug('Cleanup Expired', ['tier' => $tier,]);
 
                 // whoopsie... log the error and set the result
                 } catch (Exception $e) {
