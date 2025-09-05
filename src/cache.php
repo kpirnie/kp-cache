@@ -240,9 +240,14 @@ if (! class_exists('Cache')) {
          */
         private static function initializeConnectionPools(): void
         {
-
             // hold the available tiers
             $available_tiers = self::getAvailableTiers();
+            
+            // Get allowed backends filter
+            $allowed_backends = CacheConfig::getAllowedBackends();
+            if ($allowed_backends !== null) {
+                $available_tiers = array_intersect($available_tiers, $allowed_backends);
+            }
 
             // Configure Redis pool if it's available as a tier
             if (in_array(self::TIER_REDIS, $available_tiers)) {
@@ -411,6 +416,12 @@ if (! class_exists('Cache')) {
                     CacheConfig::set($backend, $backend_config);
                     Logger::debug("Backend configured", ['backend' => $backend]);
                 }
+            }
+
+            // Configure allowed backends if provided
+            if (isset($config['allowed_backends'])) {
+                CacheConfig::setAllowedBackends($config['allowed_backends']);
+                Logger::debug("Allowed backends configured", ['backends' => $config['allowed_backends']]);
             }
 
             // If already initialized, reinitialize with new config
@@ -1566,6 +1577,7 @@ if (! class_exists('Cache')) {
 
             // try to match the tier to the internal method
             try {
+
                 // match the tier
                 $result = match ($tier) {
                     self::TIER_ARRAY => self::setToArray($tier_key, $data, $ttl),

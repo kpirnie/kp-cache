@@ -139,6 +139,12 @@ if (! class_exists('CacheHealthMonitor')) {
             // Initialize tier health status
             $available_tiers = CacheTierManager::getAvailableTiers();
 
+            // Apply allowed backends filter
+            $allowed_backends = CacheConfig::getAllowedBackends();
+            if ($allowed_backends !== null) {
+                $available_tiers = array_intersect($available_tiers, $allowed_backends);
+            }
+
             // for each available tier
             foreach ($available_tiers as $tier) {
                 // setup the default status
