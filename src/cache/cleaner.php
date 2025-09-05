@@ -288,14 +288,14 @@ if (!class_exists('KPT\CacheCleaner')) {
         private static function validateTierAllowed(string $tier): array
         {
             $allowed_backends = CacheConfig::getAllowedBackends();
-            
+
             if ($allowed_backends !== null && !in_array($tier, $allowed_backends)) {
                 return [
                     'allowed' => false,
                     'message' => "Tier '{$tier}' is not in the allowed backends list: " . implode(', ', $allowed_backends)
                 ];
             }
-            
+
             return ['allowed' => true, 'message' => ''];
         }
 

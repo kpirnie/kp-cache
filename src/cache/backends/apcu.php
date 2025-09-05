@@ -35,8 +35,8 @@ if (! trait_exists('CacheAPCU')) {
         {
 
             // get the allowed backends, if this one is NOT allowed, dump out of this functions
-            $allowed_backends = CacheConfig::getAllowedBackends( );
-            if( ! in_array( 'apcu', $allowed_backends ) ) {
+            $allowed_backends = CacheConfig::getAllowedBackends();
+            if (! in_array('apcu', $allowed_backends)) {
                 return false;
             }
 

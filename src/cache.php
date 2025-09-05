@@ -227,7 +227,6 @@ if (! class_exists('Cache')) {
 
             // if we aren't currently, do it!
             if (! self::$_initialized) {
-                
                 // Get allowed_backends from global config if available
                 $allowed_backends = CacheConfig::getAllowedBackends();
                 if ($allowed_backends !== null && !isset($config['allowed_backends'])) {
@@ -253,7 +252,7 @@ if (! class_exists('Cache')) {
         {
             // hold the available tiers
             $available_tiers = self::getAvailableTiers();
-            
+
             // Get allowed backends filter
             $allowed_backends = CacheConfig::getAllowedBackends();
             if ($allowed_backends !== null) {
@@ -1534,8 +1533,8 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
-            if ( ! in_array( $tier, $allowed_backends ) ) {
+            $allowed_backends = CacheConfig::getAllowedBackends() ?? [];
+            if (! in_array($tier, $allowed_backends)) {
                 return false;
             }
 
@@ -1596,14 +1595,13 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
-            if ( ! in_array( $tier, $allowed_backends ) ) {
+            $allowed_backends = CacheConfig::getAllowedBackends() ?? [];
+            if (! in_array($tier, $allowed_backends)) {
                 return false;
             }
 
             // try to match the tier to the internal method
             try {
-
                 // match the tier
                 $result = match ($tier) {
                     self::TIER_ARRAY => self::setToArray($tier_key, $data, $ttl),
@@ -1665,8 +1663,8 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
-            if ( ! in_array( $tier, $allowed_backends ) ) {
+            $allowed_backends = CacheConfig::getAllowedBackends() ?? [];
+            if (! in_array($tier, $allowed_backends)) {
                 return false;
             }
 
@@ -1764,8 +1762,8 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
-            if ( ! in_array( $tier, $allowed_backends ) ) {
+            $allowed_backends = CacheConfig::getAllowedBackends() ?? [];
+            if (! in_array($tier, $allowed_backends)) {
                 return false;
             }
 
@@ -1786,7 +1784,7 @@ if (! class_exists('Cache')) {
                 };
 
             // debug log
-            Logger::debug('Clear Tier', ['tier' => $tier,]);
+                Logger::debug('Clear Tier', ['tier' => $tier,]);
 
             // whoopsie... log the error and set the result
             } catch (Exception $e) {
@@ -1820,13 +1818,12 @@ if (! class_exists('Cache')) {
 
             // loop over them
             foreach ($available_tiers as $tier) {
-
                 // get the allowed backends and check if this one is indeed allowed
-                $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
-                if ( ! in_array( $tier, $allowed_backends ) ) {
+                $allowed_backends = CacheConfig::getAllowedBackends() ?? [];
+                if (! in_array($tier, $allowed_backends)) {
                     continue;
                 }
-                
+
                 // try to match the tier to the internal method
                 try {
                     $result += match ($tier) {
@@ -1844,7 +1841,7 @@ if (! class_exists('Cache')) {
                     };
 
                 // debug log
-                Logger::debug('Cleanup Expired', ['tier' => $tier,]);
+                    Logger::debug('Cleanup Expired', ['tier' => $tier,]);
 
                 // whoopsie... log the error and set the result
                 } catch (Exception $e) {

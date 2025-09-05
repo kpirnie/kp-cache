@@ -120,7 +120,7 @@ if (! class_exists('CacheTierManager')) {
 
             // Get allowed backends filter
             $allowed_backends = CacheConfig::getAllowedBackends();
-            $tiers_to_test = $allowed_backends !== null 
+            $tiers_to_test = $allowed_backends !== null
                 ? array_intersect(self::$_valid_tiers, $allowed_backends)
                 : self::$_valid_tiers;
 
@@ -144,7 +144,7 @@ if (! class_exists('CacheTierManager')) {
             // return the available tiers
             return self::$_available_tiers;
         }
-        
+
         /**
          * Test availability of a specific cache tier
          *
@@ -1094,7 +1094,6 @@ if (! class_exists('CacheTierManager')) {
             self::$_discovery_complete = false;
             self::$_tier_test_cache = [];
         }
-
     }
 
 }
