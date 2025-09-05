@@ -1534,7 +1534,7 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( );
+            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
             if ( ! in_array( $tier, $allowed_backends ) ) {
                 return false;
             }
@@ -1596,7 +1596,7 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( );
+            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
             if ( ! in_array( $tier, $allowed_backends ) ) {
                 return false;
             }
@@ -1665,7 +1665,7 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( );
+            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
             if ( ! in_array( $tier, $allowed_backends ) ) {
                 return false;
             }
@@ -1764,7 +1764,7 @@ if (! class_exists('Cache')) {
             $result = false;
 
             // get the allowed backends and check if this one is indeed allowed
-            $allowed_backends = CacheConfig::getAllowedBackends( );
+            $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
             if ( ! in_array( $tier, $allowed_backends ) ) {
                 return false;
             }
@@ -1822,7 +1822,7 @@ if (! class_exists('Cache')) {
             foreach ($available_tiers as $tier) {
 
                 // get the allowed backends and check if this one is indeed allowed
-                $allowed_backends = CacheConfig::getAllowedBackends( );
+                $allowed_backends = CacheConfig::getAllowedBackends( ) ?? [];
                 if ( ! in_array( $tier, $allowed_backends ) ) {
                     continue;
                 }
