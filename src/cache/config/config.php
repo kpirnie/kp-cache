@@ -274,6 +274,11 @@ if (! class_exists('CacheConfig')) {
         public static function setAllowedBackends(?array $backends): void
         {
             self::$global_config['allowed_backends'] = $backends;
+
+            // Reset tier discovery when allowed backends change
+            if (class_exists('CacheTierManager')) {
+                CacheTierManager::reset();
+            }
         }
 
         /**

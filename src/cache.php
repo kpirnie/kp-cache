@@ -98,6 +98,11 @@ if (! class_exists('Cache')) {
             // Initialize core configuration
             CacheConfig::initialize();
 
+            // Apply allowed backends early if provided in config
+            if (isset($config['allowed_backends'])) {
+                CacheConfig::setAllowedBackends($config['allowed_backends']);
+            }
+
             // Initialize all manager classes
             self::initializeManagers($config);
 
@@ -222,6 +227,12 @@ if (! class_exists('Cache')) {
 
             // if we aren't currently, do it!
             if (! self::$_initialized) {
+                
+                // Get allowed_backends from global config if available
+                $allowed_backends = CacheConfig::getAllowedBackends();
+                if ($allowed_backends !== null && !isset($config['allowed_backends'])) {
+                    $config['allowed_backends'] = $allowed_backends;
+                }
                 self::init($config);
             }
         }

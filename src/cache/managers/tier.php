@@ -555,10 +555,8 @@ if (! class_exists('CacheTierManager')) {
          */
         public static function reset(): void
         {
-            self::$_available_tiers = [];
-            self::$_discovery_complete = false;
+            self::resetDiscovery();
             self::$_last_error = null;
-            self::$_tier_test_cache = [];
         }
 
         /**
@@ -1081,5 +1079,22 @@ if (! class_exists('CacheTierManager')) {
                 return false;
             }
         }
+
+        /**
+         * Reset discovery state when configuration changes
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return void
+         */
+        public static function resetDiscovery(): void
+        {
+            self::$_available_tiers = [];
+            self::$_discovery_complete = false;
+            self::$_tier_test_cache = [];
+        }
+
     }
+
 }
