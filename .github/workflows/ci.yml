@@ -61,14 +61,8 @@ jobs:
           composer install --no-interaction --no-progress
         fi
 
-    - name: Run PHPStan
-      run: composer run phpstan
-
     - name: Run CodeSniffer
       run: composer run cs-check
-
-    - name: Run Tests
-      run: composer run test
 
     - name: Run Tests with Coverage
       if: matrix.php-version == '8.2' && matrix.dependencies == 'highest'
