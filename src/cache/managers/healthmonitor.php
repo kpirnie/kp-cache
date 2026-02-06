@@ -363,26 +363,26 @@ if (! class_exists('CacheHealthMonitor')) {
                     ],
                     self::TIER_OPCACHE => [
                         'success' => function_exists('opcache_get_status') && self::isOPcacheEnabled(),
-                        'message' => (function_exists('opcache_get_status') && self::isOPcacheEnabled()) 
-                            ? 'OPcache is enabled and functional' 
+                        'message' => (function_exists('opcache_get_status') && self::isOPcacheEnabled())
+                            ? 'OPcache is enabled and functional'
                             : 'OPcache not available or disabled'
                     ],
                     self::TIER_SHMOP => [
                         'success' => function_exists('shmop_open'),
-                        'message' => function_exists('shmop_open') 
-                            ? 'SHMOP functions available' 
+                        'message' => function_exists('shmop_open')
+                            ? 'SHMOP functions available'
                             : 'SHMOP extension not available'
                     ],
                     self::TIER_APCU => [
                         'success' => function_exists('apcu_enabled') && apcu_enabled(),
-                        'message' => (function_exists('apcu_enabled') && apcu_enabled()) 
-                            ? 'APCu is enabled and functional' 
+                        'message' => (function_exists('apcu_enabled') && apcu_enabled())
+                            ? 'APCu is enabled and functional'
                             : 'APCu not available or disabled'
                     ],
                     self::TIER_YAC => [
                         'success' => extension_loaded('yac'),
-                        'message' => extension_loaded('yac') 
-                            ? 'YAC extension loaded' 
+                        'message' => extension_loaded('yac')
+                            ? 'YAC extension loaded'
                             : 'YAC extension not available'
                     ],
                     self::TIER_REDIS => self::checkRedisConnectivity(),
