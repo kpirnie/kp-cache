@@ -573,38 +573,18 @@ if (! class_exists('CacheTierManager')) {
             // try to do a basic test
             try {
                 // Basic availability checks without calling Cache methods
-                switch ($tier) {
-                    // array
-                    case self::TIER_ARRAY:
-                        return true; // Arrays always available
-                    // opcache
-                    case self::TIER_OPCACHE:
-                        return function_exists('opcache_get_status');
-                    // shmop
-                    case self::TIER_SHMOP:
-                        return function_exists('shmop_open');
-                    // apcu
-                    case self::TIER_APCU:
-                        return function_exists('apcu_enabled') && apcu_enabled();
-                    // yac
-                    case self::TIER_YAC:
-                        return extension_loaded('yac');
-                    // redis
-                    case self::TIER_REDIS:
-                        return class_exists('Redis');
-                    // memcached
-                    case self::TIER_MEMCACHED:
-                        return class_exists('Memcached');
-                    // sqlite
-                    case self::TIER_SQLITE:
-                        return class_exists('PDO') && in_array('sqlite', \PDO::getAvailableDrivers());
-                    // file
-                    case self::TIER_FILE:
-                        return true; // File system always available
-                    // default is invalid tier
-                    default:
-                        return false;
-                }
+                return match ($tier) {
+                    self::TIER_ARRAY => true,
+                    self::TIER_OPCACHE => function_exists('opcache_get_status'),
+                    self::TIER_SHMOP => function_exists('shmop_open'),
+                    self::TIER_APCU => function_exists('apcu_enabled') && apcu_enabled(),
+                    self::TIER_YAC => extension_loaded('yac'),
+                    self::TIER_REDIS => class_exists('Redis'),
+                    self::TIER_MEMCACHED => class_exists('Memcached'),
+                    self::TIER_SQLITE => class_exists('PDO') && in_array('sqlite', \PDO::getAvailableDrivers()),
+                    self::TIER_FILE => true,
+                    default => false
+                };
 
             // whoopsie... just return false
             } catch (\Exception $e) {

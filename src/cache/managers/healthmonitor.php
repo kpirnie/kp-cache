@@ -355,54 +355,42 @@ if (! class_exists('CacheHealthMonitor')) {
 
             // try to check each tier
             try {
-                // switch on the tier
-                switch ($tier) {
-                    // array
-                    case self::TIER_ARRAY:
-                        $result['success'] = true; // Array cache is always available
-                        $result['message'] = 'Array cache is functional';
-                        break;
-                    // redis
-                    case self::TIER_OPCACHE:
-                        $result['success'] = function_exists('opcache_get_status') && self::isOPcacheEnabled();
-                        $result['message'] = $result['success'] ? 'OPcache is enabled and functional' : 'OPcache not available or disabled';
-                        break;
-                    // shmop
-                    case self::TIER_SHMOP:
-                        $result['success'] = function_exists('shmop_open');
-                        $result['message'] = $result['success'] ? 'SHMOP functions available' : 'SHMOP extension not available';
-                        break;
-                    // apcu
-                    case self::TIER_APCU:
-                        $result['success'] = function_exists('apcu_enabled') && apcu_enabled();
-                        $result['message'] = $result['success'] ? 'APCu is enabled and functional' : 'APCu not available or disabled';
-                        break;
-                    // yac
-                    case self::TIER_YAC:
-                        $result['success'] = extension_loaded('yac');
-                        $result['message'] = $result['success'] ? 'YAC extension loaded' : 'YAC extension not available';
-                        break;
-                    // redis
-                    case self::TIER_REDIS:
-                        $result = self::checkRedisConnectivity();
-                        break;
-                    // memcached
-                    case self::TIER_MEMCACHED:
-                        $result = self::checkMemcachedConnectivity();
-                        break;
-                    // sqlite
-                    case self::TIER_SQLITE:
-                        $result = self::checkSQLiteConnectivity();
-                        break;
-                    // file
-                    case self::TIER_FILE:
-                        $result = self::checkFileSystemConnectivity();
-                        break;
-                    // unknown
-                    default:
-                        $result['message'] = 'Unknown tier type';
-                        break;
-                }
+                // match on the tier
+                $result = match ($tier) {
+                    self::TIER_ARRAY => [
+                        'success' => true,
+                        'message' => 'Array cache is always available'
+                    ],
+                    self::TIER_OPCACHE => [
+                        'success' => function_exists('opcache_get_status') && self::isOPcacheEnabled(),
+                        'message' => (function_exists('opcache_get_status') && self::isOPcacheEnabled()) 
+                            ? 'OPcache is enabled and functional' 
+                            : 'OPcache not available or disabled'
+                    ],
+                    self::TIER_SHMOP => [
+                        'success' => function_exists('shmop_open'),
+                        'message' => function_exists('shmop_open') 
+                            ? 'SHMOP functions available' 
+                            : 'SHMOP extension not available'
+                    ],
+                    self::TIER_APCU => [
+                        'success' => function_exists('apcu_enabled') && apcu_enabled(),
+                        'message' => (function_exists('apcu_enabled') && apcu_enabled()) 
+                            ? 'APCu is enabled and functional' 
+                            : 'APCu not available or disabled'
+                    ],
+                    self::TIER_YAC => [
+                        'success' => extension_loaded('yac'),
+                        'message' => extension_loaded('yac') 
+                            ? 'YAC extension loaded' 
+                            : 'YAC extension not available'
+                    ],
+                    self::TIER_REDIS => self::checkRedisConnectivity(),
+                    self::TIER_MEMCACHED => self::checkMemcachedConnectivity(),
+                    self::TIER_SQLITE => self::checkSQLiteConnectivity(),
+                    self::TIER_FILE => self::checkFileSystemConnectivity(),
+                    default => ['message' => 'Unknown tier type']
+                };
 
             // whoopsie... nfg
             } catch (\Exception $e) {
@@ -754,35 +742,16 @@ if (! class_exists('CacheHealthMonitor')) {
             ];
 
             try {
-                // switch on the tier type
-                switch ($tier) {
-                    case self::TIER_ARRAY:
-                        $result['metrics'] = self::getArrayResourceMetrics();
-                        break;
-                    case self::TIER_OPCACHE:
-                        $result['metrics'] = self::getOPcacheResourceMetrics();
-                        break;
-
-                    case self::TIER_APCU:
-                        $result['metrics'] = self::getAPCuResourceMetrics();
-                        break;
-
-                    case self::TIER_REDIS:
-                        $result['metrics'] = self::getRedisResourceMetrics();
-                        break;
-
-                    case self::TIER_MEMCACHED:
-                        $result['metrics'] = self::getMemcachedResourceMetrics();
-                        break;
-
-                    case self::TIER_FILE:
-                        $result['metrics'] = self::getFileSystemResourceMetrics();
-                        break;
-
-                    default:
-                        $result['metrics'] = ['resource_check' => 'not_applicable'];
-                        break;
-                }
+                // match on the tier type
+                $result['metrics'] = match ($tier) {
+                    self::TIER_ARRAY => self::getArrayResourceMetrics(),
+                    self::TIER_OPCACHE => self::getOPcacheResourceMetrics(),
+                    self::TIER_APCU => self::getAPCuResourceMetrics(),
+                    self::TIER_REDIS => self::getRedisResourceMetrics(),
+                    self::TIER_MEMCACHED => self::getMemcachedResourceMetrics(),
+                    self::TIER_FILE => self::getFileSystemResourceMetrics(),
+                    default => ['resource_check' => 'not_applicable']
+                };
 
                 // Check thresholds
                 $thresholds = self::$_performance_thresholds[$tier] ?? [];

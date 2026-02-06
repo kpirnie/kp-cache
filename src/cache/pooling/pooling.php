@@ -452,7 +452,7 @@ if (! class_exists('CacheConnectionPool')) {
 
             // try to create the connection
             try {
-                // switch on the backend type
+                // match the backend type
                 switch ($backend) {
                     // redis
                     case 'redis':
