@@ -33,7 +33,7 @@
         }
     ],
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.4",
         "ext-json": "*",
         "kevinpirnie/kpt-logger": "^1.0"
     },
@@ -72,7 +72,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "support": {
-        "issues": "https://github.com/kpirnie/kpt-wpfieldframework/issues",
-        "source": "https://github.com/kpirnie/kpt-wpfieldframework"
+        "issues": "https://github.com/kpirnie/kp-cache/issues",
+        "source": "https://github.com/kpirnie/kp-cache"
     }
 }
