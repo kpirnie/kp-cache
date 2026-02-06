@@ -82,18 +82,6 @@ if (! class_exists('CacheConfig')) {
                 'segment_size' => 1048576,
                 'base_key' => 0x12345000,
             ],
-            'mysql' => [
-                'table_name' => 'kptv_cache',
-                'prefix' => null,
-                'db_settings' => [
-                    'server' => null,
-                    'schema' => null,
-                    'username' => null,
-                    'password' => null,
-                    'collation' => null,
-                    'charset' => null,
-                ]
-            ],
             'sqlite' => [
                 'db_path' => null,  // will use default path if null
                 'table_name' => 'kptv_cache',

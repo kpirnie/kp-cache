@@ -49,7 +49,6 @@ if (! class_exists('Cache')) {
         use CacheMemcachedAsync;
         use CacheMixedAsync;
         use CacheOPCacheAsync;
-        use CacheMySQL;
         use CacheSQLite;
 
         // tier contstants
@@ -60,7 +59,6 @@ if (! class_exists('Cache')) {
         const TIER_YAC = 'yac';
         const TIER_REDIS = 'redis';
         const TIER_MEMCACHED = 'memcached';
-        const TIER_MYSQL = 'mysql';
         const TIER_SQLITE = 'sqlite';
         const TIER_FILE = 'file';
 
@@ -1549,7 +1547,6 @@ if (! class_exists('Cache')) {
                     self::TIER_OPCACHE => self::getFromOPcache($tier_key),
                     self::TIER_APCU => self::getFromAPCu($tier_key),
                     self::TIER_YAC => self::getFromYac($tier_key),
-                    self::TIER_MYSQL => self::getFromMySQL($tier_key),
                     self::TIER_SQLITE => self::getFromSQLite($tier_key),
                     self::TIER_FILE => self::getFromFile($tier_key),
                     default => false
@@ -1611,7 +1608,6 @@ if (! class_exists('Cache')) {
                     self::TIER_OPCACHE => self::setToOPcache($tier_key, $data, $ttl),
                     self::TIER_APCU => self::setToAPCu($tier_key, $data, $ttl),
                     self::TIER_YAC => self::setToYac($tier_key, $data, $ttl),
-                    self::TIER_MYSQL => self::setToMySQL($tier_key, $data, $ttl),
                     self::TIER_SQLITE => self::setToSQLite($tier_key, $data, $ttl),
                     self::TIER_FILE => self::setToFile($tier_key, $data, $ttl),
                     default => false
@@ -1678,7 +1674,6 @@ if (! class_exists('Cache')) {
                     self::TIER_SHMOP => self::deleteFromShmop($key),
                     self::TIER_APCU => self::deleteFromAPCu($tier_key),
                     self::TIER_YAC => self::deleteFromYac($tier_key),
-                    self::TIER_MYSQL => self::deleteFromMySQL($tier_key),
                     self::TIER_SQLITE => self::deleteFromSQLite($tier_key),
                     self::TIER_FILE => self::deleteFromFile($tier_key),
                     default => false
@@ -1777,7 +1772,6 @@ if (! class_exists('Cache')) {
                     self::TIER_SHMOP => self::clearShmop(),
                     self::TIER_APCU => self::clearAPCu(),
                     self::TIER_YAC => self::clearYac(),
-                    self::TIER_MYSQL => self::clearMySQL(),
                     self::TIER_SQLITE => self::clearSQLite(),
                     self::TIER_FILE => self::clearFileCache(),
                     default => false
@@ -1834,7 +1828,6 @@ if (! class_exists('Cache')) {
                         self::TIER_SHMOP => self::cleanupSHMOP(),
                         self::TIER_APCU => self::cleanupAPCu(),
                         self::TIER_YAC => self::cleanupYac(),
-                        self::TIER_MYSQL => self::cleanupMySQL(),
                         self::TIER_SQLITE => self::cleanupSQLite(),
                         self::TIER_FILE => self::cleanupFile(),
                         default => 0

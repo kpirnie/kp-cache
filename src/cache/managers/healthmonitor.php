@@ -45,7 +45,6 @@ if (! class_exists('CacheHealthMonitor')) {
         const TIER_REDIS = 'redis';
         const TIER_MEMCACHED = 'memcached';
         const TIER_FILE = 'file';
-        const TIER_MYSQL = 'mysql';
         const TIER_SQLITE = 'sqlite';
         const CHECK_CONNECTIVITY = 'connectivity';
         const CHECK_PERFORMANCE = 'performance';
@@ -75,7 +74,6 @@ if (! class_exists('CacheHealthMonitor')) {
             self::TIER_YAC => ['response_time' => 0.01, 'memory_usage' => 80],
             self::TIER_REDIS => ['response_time' => 0.05, 'memory_usage' => 90, 'connections' => 80],
             self::TIER_MEMCACHED => ['response_time' => 0.05, 'memory_usage' => 90, 'connections' => 80],
-            self::TIER_MYSQL => ['response_time' => 0.1, 'query_time' => 0.05, 'connections' => 80],
             self::TIER_SQLITE => ['response_time' => 0.05, 'database_size' => 100],
             self::TIER_FILE => ['response_time' => 0.01, 'disk_usage' => 95]
         ];
@@ -392,10 +390,6 @@ if (! class_exists('CacheHealthMonitor')) {
                     case self::TIER_MEMCACHED:
                         $result = self::checkMemcachedConnectivity();
                         break;
-                    // mysql
-                    case self::TIER_MYSQL:
-                        $result = self::checkMySQLConnectivity();
-                        break;
                     // sqlite
                     case self::TIER_SQLITE:
                         $result = self::checkSQLiteConnectivity();
@@ -635,50 +629,6 @@ if (! class_exists('CacheHealthMonitor')) {
             }
 
             // return the result
-            return $result;
-        }
-
-        /**
-         * Check MySQL connectivity and basic functionality
-         *
-         * @since 8.4
-         * @author Kevin Pirnie <me@kpirnie.com>
-         *
-         * @return array Returns MySQL connectivity results
-         */
-        private static function checkMySQLConnectivity(): array
-        {
-
-            $result = ['success' => false, 'message' => ''];
-
-            try {
-                if (! class_exists('\\KPT\\Database')) {
-                    $result['message'] = 'Database class not available';
-                    return $result;
-                }
-
-                // get mysql configuration
-                $config = CacheConfig::get('mysql');
-
-                // build database settings object if provided in config
-                $db_settings = null;
-                if (isset($config['db_settings']) && is_array($config['db_settings'])) {
-                    $db_settings = (object) $config['db_settings'];
-                }
-
-                $db = new Database($db_settings);
-                $test_result = $db->raw('SELECT 1 as test');
-
-                if (! empty($test_result)) {
-                    $result['success'] = true;
-                    $result['message'] = 'MySQL connectivity and operations successful';
-                } else {
-                    $result['message'] = 'MySQL query test failed';
-                }
-            } catch (\Exception $e) {
-                $result['message'] = 'MySQL connectivity error: ' . $e->getMessage();
-            }
-
             return $result;
         }
 

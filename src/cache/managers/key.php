@@ -39,7 +39,6 @@ if (! class_exists('CacheKeyManager')) {
         const TIER_REDIS = 'redis';
         const TIER_MEMCACHED = 'memcached';
         const TIER_FILE = 'file';
-        const TIER_MYSQL = 'mysql';
         const TIER_SQLITE = 'sqlite';
 
         // tier key limits
@@ -51,7 +50,6 @@ if (! class_exists('CacheKeyManager')) {
             self::TIER_YAC => 48,           // YAC limitation
             self::TIER_REDIS => 512000000,  // Very large, practically unlimited
             self::TIER_MEMCACHED => 250,    // Memcached limitation
-            self::TIER_MYSQL => 512,        // Based on VARCHAR(500) in table
             self::TIER_SQLITE => 1024,      // SQLite TEXT field, generous limit
             self::TIER_FILE => 255          // File system limitations
         ];
@@ -65,7 +63,6 @@ if (! class_exists('CacheKeyManager')) {
             self::TIER_YAC => ["\0"],       // Null bytes not allowed
             self::TIER_REDIS => [],         // Binary safe
             self::TIER_MEMCACHED => [' ', "\t", "\r", "\n", "\0"],
-            self::TIER_MYSQL => ["\0"],     // Null bytes not allowed in MySQL
             self::TIER_SQLITE => ["\0"],    // Null bytes not allowed
             self::TIER_FILE => ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
         ];

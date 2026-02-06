@@ -1,6 +1,6 @@
 # KPT Cache - Modern Multi-Tier Caching System
 
-A comprehensive, high-performance caching solution that provides multiple tiers of caching including OPcache, SHMOP, APCu, YAC, Redis, Memcached, MySQL, SQLite, and File-based caching with automatic tier discovery, connection pooling, and failover support.
+A comprehensive, high-performance caching solution that provides multiple tiers of caching including OPcache, SHMOP, APCu, YAC, Redis, Memcached, SQLite, and File-based caching with automatic tier discovery, connection pooling, and failover support.
 
 ## ✨ Features
 
@@ -26,7 +26,6 @@ A comprehensive, high-performance caching solution that provides multiple tiers 
 | **YAC** | Memory | High | Yet Another Cache extension |
 | **Redis** | Network | Medium | Distributed caching and sessions |
 | **Memcached** | Network | Medium | Distributed memory caching |
-| **MySQL** | Database | Low | Persistent database caching |
 | **SQLite** | Database | Low | Local database caching |
 | **File** | Filesystem | Lowest | Fallback file-based caching |
 
@@ -76,7 +75,7 @@ use KPT\Cache;
 Cache::configure([
     'path' => '/var/cache/myapp',
     'prefix' => 'myapp:',
-    'allowed_backends' => [ 'array', 'redis', 'memcached', 'opcache', 'shmop', 'file' ], // also: apcu, yac, mysql, sqlite
+    'allowed_backends' => [ 'array', 'redis', 'memcached', 'opcache', 'shmop', 'file' ], // also: apcu, yac, sqlite
 ]);
 
 // Store data (automatically uses best available tier)
@@ -115,9 +114,6 @@ Cache::configure([
             'port' => 11211,
             'persistent' => true
         ],
-        'mysql' => [
-            'table_name' => 'app_cache'
-        ]
     ]
 ]);
 ```
