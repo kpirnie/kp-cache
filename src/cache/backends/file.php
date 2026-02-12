@@ -183,15 +183,12 @@ if (! trait_exists('CacheFile')) {
             // If it exists
             if (file_exists($file)) {
                 try {
-                    // Read file contents
-                    $data = file_get_contents($file);
+                    // Read only the expiry header first (first 10 bytes)
+                    $expires = file_get_contents($file, false, null, 0, 10);
 
-                    if ($data === false || strlen($data) < 10) {
+                    if ($expires === false || strlen($expires) < 10) {
                         return false;
                     }
-
-                    // Setup its expiry
-                    $expires = substr($data, 0, 10);
 
                     // Is it supposed to expire
                     if (is_numeric($expires) && time() > (int)$expires) {
@@ -200,8 +197,15 @@ if (! trait_exists('CacheFile')) {
                         return false;
                     }
 
-                    // Return the unserialized data
-                    return unserialize(substr($data, 10));
+                    // Read full file contents only when not expired
+                    $data = file_get_contents($file);
+
+                    if ($data === false || strlen($data) < 10) {
+                        return false;
+                    }
+
+                    // Return the unserialized data safely (no object instantiation)
+                    return unserialize(substr($data, 10), ['allowed_classes' => false]);
                 } catch (\Exception $e) {
                     self::$_last_error = "File cache read error: " . $e->getMessage();
                     return false;
@@ -326,20 +330,14 @@ if (! trait_exists('CacheFile')) {
             foreach ($files as $file) {
                 // if it's a real file
                 if (is_file($file)) {
-                    // get the file contents
-                    $content = file_get_contents($file);
+                    // read only expiry header to avoid loading full payload into memory
+                    $expires = file_get_contents($file, false, null, 0, 10);
 
-                    // if we have content
-                    if ($content !== false) {
-                        // get the expiry time
-                        $expires = substr($content, 0, 10);
-
-                        // if it's numeric and expired
-                        if (is_numeric($expires) && time() > (int)$expires) {
-                            // if we can unlink it, increment the count
-                            if (unlink($file)) {
-                                $count++;
-                            }
+                    // if it's numeric and expired
+                    if ($expires !== false && is_numeric($expires) && time() > (int)$expires) {
+                        // if we can unlink it, increment the count
+                        if (unlink($file)) {
+                            $count++;
                         }
                     }
                 }
