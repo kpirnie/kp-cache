@@ -259,6 +259,22 @@ if ($_ENV['APP_ENV'] === 'production') {
 }
 ```
 
+## ⚡ Performance Tips
+
+- Put the fastest in-memory backends first (`array`, `apcu`, `yac`) and use network/disk tiers (`redis`, `memcached`, `sqlite`, `file`) as fallback.
+- Always set bounded TTL values for hot keys to avoid stale data and unbounded growth.
+- Use short, stable key prefixes and namespaces to reduce key size overhead in high-throughput workloads.
+- Reuse persistent Redis/Memcached connections in long-lived workers and tune retry settings conservatively.
+- For file cache usage, keep cache paths on local SSD storage and avoid shared network filesystems where possible.
+
+## 🔐 Security Hardening
+
+- Use a dedicated cache directory with restrictive permissions (for example `0750`) and avoid world-writable paths.
+- Keep cache prefixes environment-specific (`dev:`, `staging:`, `prod:`) to prevent cross-environment key collisions.
+- Never store secrets in cache without encryption at the application layer.
+- Prefer private network endpoints for Redis/Memcached and require authentication/TLS whenever available.
+- Validate and sanitize external input before using it as part of cache keys.
+
 ## 📊 Monitoring & Statistics
 
 ### Performance Statistics
