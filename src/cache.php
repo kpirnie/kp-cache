@@ -75,6 +75,7 @@ if (! class_exists('\KPT\Cache')) {
         private static bool $_async_enabled = false;
         private static ?object $_event_loop = null;
         private static ?string $_last_error = null;
+        private static bool $_file_path_private = false;
 
         /**
          * Initialize the cache system
@@ -350,54 +351,25 @@ if (! class_exists('\KPT\Cache')) {
             // Try to create and setup the cache directory
             if ($cache_path !== null && self::createCacheDirectory($cache_path)) {
                 self::$_fallback_path = $cache_path;
+                self::$_file_path_private = true;
                 Logger::info("Cache directory initialized", ['path' => self::$_fallback_path]);
                 return;
             }
 
-            Logger::warning("Preferred cache path failed, trying fallbacks", ['preferred' => $cache_path]);
+            Logger::warning("Preferred cache path failed, trying per-user fallback", ['preferred' => $cache_path]);
 
-            // Rest of the fallback logic...
-            $fallback_paths = [
-                sys_get_temp_dir() . '/kpt_cache_' . getmypid() . '_' . get_current_user() . '/',
-                sys_get_temp_dir() . '/kpt_cache_' . uniqid() . '/',
-                getcwd() . '/cache/',
-                __DIR__ . '/cache/',
-                '/tmp/kpt_cache_' . getmypid() . '_' . get_current_user() . '/',
-                '/tmp/kpt_cache_' . uniqid() . '/',
-            ];
-
-            foreach ($fallback_paths as $alt_path) {
-                Logger::debug("Trying fallback path", ['path' => $alt_path]);
-
-                if (self::createCacheDirectory($alt_path)) {
-                    self::$_fallback_path = $alt_path;
-                    Logger::info("Using fallback cache path", ['path' => $alt_path]);
-                    return;
-                }
+            // per-user temp directory, private to this process
+            $alt_path = sys_get_temp_dir() . '/kpt_cache_' . self::getProcessUid() . '/';
+            if (self::createCacheDirectory($alt_path)) {
+                self::$_fallback_path = $alt_path;
+                self::$_file_path_private = true;
+                Logger::info("Using fallback cache path", ['path' => $alt_path]);
+                return;
             }
 
-            // Last resort
-            $temp_path = sys_get_temp_dir() . '/kpt_' . uniqid() . '_' . getmypid() . '/';
-
-            if (self::createCacheDirectory($temp_path)) {
-                self::$_fallback_path = $temp_path;
-                Logger::warning("Using last resort cache path", ['path' => $temp_path]);
-            } else {
-                Logger::error("Unable to create any writable cache directory - all fallback paths failed");
-
-                // Try one more unique path in /tmp with different approach
-                $final_attempt = '/tmp/kpt_emergency_' . uniqid() . '_' . time() . '/';
-                if (self::createCacheDirectory($final_attempt)) {
-                    self::$_fallback_path = $final_attempt;
-                    Logger::warning("Emergency cache path created", ['path' => $final_attempt]);
-                } else {
-                    $available_tiers = self::getAvailableTiers();
-                    $key = array_search(self::TIER_FILE, $available_tiers);
-                    if ($key !== false) {
-                        Logger::warning("File tier disabled due to directory creation failure");
-                    }
-                }
-            }
+            // nothing private we can use, so the file tier stays off
+            self::$_file_path_private = false;
+            Logger::error("Unable to create a private cache directory, file tier disabled");
         }
 
         /**
@@ -1465,6 +1437,7 @@ if (! class_exists('\KPT\Cache')) {
             // Try to create the cache directory with proper permissions
             if (self::createCacheDirectory($path)) {
                 self::$_configurable_cache_path = $path;
+                self::$_file_path_private = true;
 
                 // If we're already initialized, update the fallback path immediately
                 if (self::$_initialized) {

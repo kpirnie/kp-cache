@@ -62,26 +62,38 @@ if (! trait_exists('\KPT\CacheSQLite')) {
                 $config = CacheConfig::get('sqlite');
                 $db_path = $config['db_path'] ?? self::getSQLiteDefaultPath();
 
-                // ensure directory exists
+                // ensure directory exists, private to this process
                 $dir = dirname($db_path);
-                if (! is_dir($dir) && ! mkdir($dir, 0755, true)) {
+                if (! is_dir($dir) && ! @mkdir($dir, 0700, true) && ! is_dir($dir)) {
                     self::$_sqlite_last_error = "Failed to create SQLite directory: {$dir}";
                     return null;
                 }
 
-                // create SQLite connection
-                $dsn = "sqlite:{$db_path}";
-                self::$_sqlite_db = new \PDO($dsn);
+                // refuse a directory anyone else can touch
+                if (! self::isPrivatePath($dir)) {
+                    self::$_sqlite_last_error = "SQLite directory is not private to this process: {$dir}";
+                    return null;
+                }
 
-                // set SQLite options
-                self::$_sqlite_db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-                self::$_sqlite_db->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_OBJ);
+                // create the database and its WAL files private to this process
+                $old_umask = umask(0077);
+                try {
+                    // create SQLite connection
+                    $dsn = "sqlite:{$db_path}";
+                    self::$_sqlite_db = new \PDO($dsn);
 
-                // enable WAL mode for better concurrency
-                self::$_sqlite_db->exec('PRAGMA journal_mode=WAL');
-                self::$_sqlite_db->exec('PRAGMA synchronous=NORMAL');
-                self::$_sqlite_db->exec('PRAGMA cache_size=10000');
-                self::$_sqlite_db->exec('PRAGMA temp_store=MEMORY');
+                    // set SQLite options
+                    self::$_sqlite_db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                    self::$_sqlite_db->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_OBJ);
+
+                    // enable WAL mode for better concurrency
+                    self::$_sqlite_db->exec('PRAGMA journal_mode=WAL');
+                    self::$_sqlite_db->exec('PRAGMA synchronous=NORMAL');
+                    self::$_sqlite_db->exec('PRAGMA cache_size=10000');
+                    self::$_sqlite_db->exec('PRAGMA temp_store=MEMORY');
+                } finally {
+                    umask($old_umask);
+                }
 
                 // ensure cache table exists
                 if (! self::$_sqlite_table_initialized) {

@@ -26,15 +26,19 @@ if (! trait_exists('\KPT\CacheFile')) {
      */
     trait CacheFile
     {
+
         /**
-         * Create cache directory with proper permissions
-         * Fixed to handle trailing slashes and is_writable() quirks
+         * Create cache directory private to this process
+         *
+         * Creates the directory with 0700, tightens it if we own it, and
+         * refuses it when it is a symlink, owned by someone else, or open
+         * to group or world access.
          *
          * @since 8.4
          * @author Kevin Pirnie <me@kpirnie.com>
          *
          * @param string $path Directory path to create
-         * @return bool Returns true if directory was created or already exists and is writable
+         * @return bool Returns true if directory is private and writable
          */
         private static function createCacheDirectory(string $path): bool
         {
@@ -48,8 +52,8 @@ if (! trait_exists('\KPT\CacheFile')) {
 
             // Check if directory exists
             if (! is_dir($check_path)) {
-                // Try to create the directory
-                if (! @mkdir($path, 0755, true)) {
+                // Try to create the directory private to this process
+                if (! @mkdir($path, 0700, true) && ! is_dir($check_path)) {
                     $error = error_get_last();
                     Logger::error("Failed to create cache directory", [
                         'path' => $path,
@@ -60,34 +64,28 @@ if (! trait_exists('\KPT\CacheFile')) {
                 Logger::debug("Created cache directory", ['path' => $path]);
             }
 
-            // Check if writable - use path WITHOUT trailing slash
-            if (! is_writable($check_path)) {
-                // Try a actual write test as is_writable() can be unreliable
-                $test_file = $path . '.write_test_' . uniqid();
-                $write_test = @file_put_contents($test_file, 'test');
-
-                if ($write_test !== false) {
-                    // Write succeeded, directory is actually writable
-                    @unlink($test_file);
-                    Logger::debug("Directory is writable (write test passed)", ['path' => $path]);
-                    return true;
-
-                    // otherwise, it's really not writable
-                } else {
-                    Logger::debug("Directory not writable (trying next fallback)", [
-                        'path' => $path,
-                        'check_path' => $check_path,
-                        'is_dir' => is_dir($check_path),
-                        'file_exists' => file_exists($check_path),
-                        'permissions' => file_exists($check_path) ? substr(sprintf('%o', fileperms($check_path)), -4) : 'N/A',
-                        'owner' => file_exists($check_path) ? fileowner($check_path) : 'N/A',
-                        'current_user' => get_current_user()
-                    ]);
-                    return false;
-                }
+            // if we own it but it's open to others, lock it down
+            if (PHP_OS_FAMILY !== 'Windows' && ! is_link($check_path) && fileowner($check_path) === self::getProcessUid()) {
+                @chmod($check_path, 0700);
             }
 
-            Logger::debug("Directory verified as writable", ['path' => $path]);
+            // refuse anything that isn't private to us
+            if (! self::isPrivatePath($check_path)) {
+                Logger::warning("Cache directory is not private to this process", [
+                    'path' => $path,
+                    'owner' => file_exists($check_path) ? fileowner($check_path) : 'N/A',
+                    'permissions' => file_exists($check_path) ? substr(sprintf('%o', fileperms($check_path)), -4) : 'N/A',
+                ]);
+                return false;
+            }
+
+            // Check if writable - use path WITHOUT trailing slash
+            if (! is_writable($check_path)) {
+                Logger::debug("Directory not writable", ['path' => $path]);
+                return false;
+            }
+
+            Logger::debug("Directory verified as private and writable", ['path' => $path]);
             return true;
         }
 
@@ -177,6 +175,12 @@ if (! trait_exists('\KPT\CacheFile')) {
          */
         private static function getFromFile(string $_key): mixed
         {
+
+            // no private directory, no file tier
+            if (! self::$_file_path_private) {
+                return false;
+            }
+
             // Setup the cache file
             $file = self::getCachePath() . md5($_key);
 
@@ -228,6 +232,11 @@ if (! trait_exists('\KPT\CacheFile')) {
          */
         private static function setToFile(string $_key, mixed $_data, int $_length): bool
         {
+            // no private directory, no file tier
+            if (! self::$_file_path_private) {
+                return false;
+            }
+
             // setup file path and data
             $file = self::getCachePath() . md5($_key);
             $expires = time() + $_length;
@@ -235,8 +244,13 @@ if (! trait_exists('\KPT\CacheFile')) {
 
             // try to write the file
             try {
-                // Write with exclusive lock
-                $result = file_put_contents($file, $data, LOCK_EX);
+                // Write with exclusive lock, private to this process
+                $old_umask = umask(0077);
+                try {
+                    $result = file_put_contents($file, $data, LOCK_EX);
+                } finally {
+                    umask($old_umask);
+                }
                 return $result !== false;
             } catch (\Exception $e) {
                 self::$_last_error = "File cache write error: " . $e->getMessage();
@@ -258,6 +272,10 @@ if (! trait_exists('\KPT\CacheFile')) {
          */
         private static function deleteFromFile(string $_key): bool
         {
+            // no private directory, nothing of ours to delete
+            if (! self::$_file_path_private) {
+                return false;
+            }
 
             // setup the file path
             $file = self::getCachePath() . md5($_key);
@@ -432,18 +450,9 @@ if (! trait_exists('\KPT\CacheFile')) {
 
             // try to fix permissions
             try {
-                // Try different permission levels
-                $permission_levels = [0755, 0775, 0777];
-
-                // loop through each permission level
-                foreach ($permission_levels as $perms) {
-                    // try to change permissions
-                    if (@chmod($path, $perms)) {
-                        // check if it's now writable
-                        if (is_writable($path)) {
-                            return true;
-                        }
-                    }
+                // lock it down to this process only
+                if (@chmod($path, 0700) && self::isPrivatePath($path) && is_writable($path)) {
+                    return true;
                 }
 
                 // If chmod failed, try recreating the directory
@@ -507,11 +516,7 @@ if (! trait_exists('\KPT\CacheFile')) {
 
             // setup test paths to check
             $test_paths = [
-                sys_get_temp_dir() . '/kpt_cache_alt/',
-                getcwd() . '/cache/',
-                __DIR__ . '/cache/',
-                '/tmp/kpt_cache_alt/',
-                sys_get_temp_dir() . '/cache/',
+                sys_get_temp_dir() . '/kpt_cache_' . self::getProcessUid() . '/',
             ];
 
             // test each path
@@ -527,7 +532,7 @@ if (! trait_exists('\KPT\CacheFile')) {
 
                 // Test if we can create a test directory
                 $test_dir = $path . 'test_' . uniqid();
-                if (@mkdir($test_dir, 0755, true)) {
+                if (@mkdir($test_dir, 0700, true)) {
                     $status['can_create'] = true;
                     $status['recommended'] = is_writable($test_dir);
                     @rmdir($test_dir);
@@ -858,7 +863,7 @@ if (! trait_exists('\KPT\CacheFile')) {
                 // Create backup directory
                 if (! is_dir($backup_path)) {
                     // create the backup directory
-                    if (! mkdir($backup_path, 0755, true)) {
+                    if (! mkdir($backup_path, 0700, true)) {
                         return false;
                     }
                 }

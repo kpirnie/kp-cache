@@ -948,7 +948,7 @@ if (! class_exists('\KPT\CacheTierManager')) {
 
                 // Ensure directory exists and is writable
                 if (! is_dir($cache_path)) {
-                    if (! @mkdir($cache_path, 0755, true)) {
+                    if (! @mkdir($cache_path, 0700, true)) {
                         return false;
                     }
                 }

@@ -90,7 +90,7 @@ if (! class_exists('\KPT\CacheConfig')) {
             ],
             'file' => [
                 'path' => null,
-                'permissions' => 0755,
+                'permissions' => 0700,
                 'prefix' => null,
             ]
         ];
