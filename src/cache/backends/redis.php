@@ -830,51 +830,8 @@ if (! trait_exists('\KPT\CacheRedis', false)) {
             // setup the count
             $count = 0;
 
-            $connection = null;
-            $use_pool = self::$_connection_pooling_enabled ?? true;
-
-            try {
-                if ($use_pool) {
-                    $connection = CacheConnectionPool::getConnection('redis');
-                } else {
-                    $connection = self::getRedis();
-                }
-
-                if (!$connection) {
-                    return $count;
-                }
-
-                $config = CacheConfig::get('redis');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
-
-                // Scan for keys with our prefix
-                $iterator = null;
-                $pattern = $prefix . '*';
-
-                while ($keys = $connection->scan($iterator, $pattern, 100)) {
-                    foreach ($keys as $key) {
-                        // Check TTL
-                        $ttl = $connection->ttl($key);
-
-                        // If TTL is 0 or about to expire (less than 1 second)
-                        if ($ttl !== false && $ttl >= 0 && $ttl < 1) {
-                            if ($connection->del($key) > 0) {
-                                $count++;
-                            }
-                        }
-                    }
-
-                    if ($iterator === 0) {
-                        break;
-                    }
-                }
-            } catch (\RedisException $e) {
-                // Silent fail
-            } finally {
-                if ($use_pool && $connection) {
-                    CacheConnectionPool::returnConnection('redis', $connection);
-                }
-            }
+            // Redis expires keys itself
+            // Just return 0 as Redis manages this internally
 
             // return the count
             return $count;
