@@ -1625,7 +1625,7 @@ if (! class_exists('Cache')) {
                 ]);
 
                 // whoopsie... log the error set false
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 Logger::error("Error setting to tier {$tier}: " . $e->getMessage(), [
                     'tier' => $tier,
                     'key' => $key,
@@ -1686,7 +1686,7 @@ if (! class_exists('Cache')) {
                 Logger::debug('Delete From Tier', ['tier' => $tier, 'key' => $key, 'tier_key' => $tier_key]);
 
                 // whoopsie... log the error and set the result
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 Logger::error("Error deleting from tier", [
                     'error' => $e->getMessage(),
                     'tier' => $tier,
@@ -1784,7 +1784,7 @@ if (! class_exists('Cache')) {
                 Logger::debug('Clear Tier', ['tier' => $tier,]);
 
                 // whoopsie... log the error and set the result
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 Logger::error("Error deleting from tier", [
                     'error' => $e->getMessage(),
                     'tier' => $tier,
@@ -1840,7 +1840,7 @@ if (! class_exists('Cache')) {
                     Logger::debug('Cleanup Expired', ['tier' => $tier,]);
 
                     // whoopsie... log the error and set the result
-                } catch (Exception $e) {
+                } catch (\Throwable $e) {
                     Logger::error("Error cleaning from tier", [
                         'error' => $e->getMessage(),
                         'tier' => $tier,
