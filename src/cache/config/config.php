@@ -50,6 +50,9 @@ if (! class_exists('\KPT\CacheConfig')) {
                 'host' => 'localhost',
                 'port' => 6379,
                 'database' => 0,
+                'username' => null,
+                'password' => null,
+                'tls' => false, // true, or an array of ssl stream context options
                 'prefix' => null,
                 'read_timeout' => 0,
                 'connect_timeout' => 2,
@@ -60,6 +63,8 @@ if (! class_exists('\KPT\CacheConfig')) {
             'memcached' => [
                 'host' => 'localhost',
                 'port' => 11211,
+                'username' => null,
+                'password' => null,
                 'prefix' => null,
                 'persistent' => true,
                 'retry_attempts' => 2,

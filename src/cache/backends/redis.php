@@ -51,19 +51,17 @@ if (! trait_exists('\KPT\CacheRedis')) {
 
                 // create new redis instance
                 $redis = new \Redis();
-                $connected = $redis->pconnect(
-                    $config['host'],
-                    $config['port'],
-                    $config['connect_timeout'] ?? 2
-                );
 
-                // check if connection failed
-                if (! $connected) {
+                // connect, authenticate and select the database
+                if (! CacheConnectionPool::connectRedis(
+                    $redis,
+                    $config,
+                    (float) ($config['connect_timeout'] ?? 2)
+                )) {
                     return false;
                 }
 
-                // select the database and test ping
-                $redis->select($config['database'] ?? 0);
+                // test ping
                 $result = $redis->ping();
                 $redis->close();
 
@@ -135,20 +133,14 @@ if (! trait_exists('\KPT\CacheRedis')) {
                     // create redis instance
                     $redis = new \Redis();
 
-                    // attempt persistent connection
-                    $connected = $redis->pconnect(
-                        $config['host'],
-                        $config['port'],
-                        $config['connect_timeout'] ?? 2
-                    );
-
-                    // check if connection failed
-                    if (! $connected) {
+                    // connect, authenticate and select the database
+                    if (! CacheConnectionPool::connectRedis(
+                        $redis,
+                        $config,
+                        (float) ($config['connect_timeout'] ?? 2)
+                    )) {
                         throw new \RedisException("Connection failed");
                     }
-
-                    // select the database
-                    $redis->select($config['database'] ?? 0);
 
                     // set prefix if configured
                     if (! empty($config['prefix'])) {

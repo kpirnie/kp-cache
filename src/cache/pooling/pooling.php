@@ -77,6 +77,69 @@ if (! class_exists('\KPT\CacheConnectionPool')) {
         }
 
         /**
+         * Connect, authenticate, and select the database for a Redis client
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param \Redis $redis The client to connect
+         * @param array $config The redis backend configuration
+         * @param float $timeout The connect timeout in seconds
+         * @return bool Returns true if connected and authenticated
+         */
+        public static function connectRedis(\Redis $redis, array $config, float $timeout = 2.0): bool
+        {
+
+            // setup host, port and optional tls context
+            $host = $config['host'] ?? '127.0.0.1';
+            $port = (int) ($config['port'] ?? 6379);
+            $context = null;
+            if (! empty($config['tls'])) {
+                $host = 'tls://' . preg_replace('#^\w+://#', '', $host);
+                $context = ['stream' => is_array($config['tls']) ? $config['tls'] : []];
+            }
+
+            // connect
+            $connected = $context === null
+                ? $redis->pconnect($host, $port, $timeout)
+                : $redis->pconnect($host, $port, $timeout, null, 0, 0, $context);
+            if (! $connected) {
+                return false;
+            }
+
+            // authenticate before anything else
+            if (! empty($config['password'])) {
+                $credentials = ! empty($config['username']) ? [$config['username'], $config['password']] : $config['password'];
+                if (! $redis->auth($credentials)) {
+                    return false;
+                }
+            }
+
+            // select the database
+            return $redis->select((int) ($config['database'] ?? 0));
+        }
+
+        /**
+         * Apply SASL credentials to a Memcached client
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param \Memcached $memcached The client to configure
+         * @param array $config The memcached backend configuration
+         * @return void Returns nothing
+         */
+        public static function applyMemcachedAuth(\Memcached $memcached, array $config): void
+        {
+
+            // sasl needs both credentials and the binary protocol
+            if (! empty($config['username']) && ! empty($config['password'])) {
+                $memcached->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
+                $memcached->setSaslAuthData($config['username'], $config['password']);
+            }
+        }
+
+        /**
          * Get connection from pool
          *
          * Retrieves a healthy connection from the pool, creating new connections
@@ -426,20 +489,10 @@ if (! class_exists('\KPT\CacheConnectionPool')) {
                         // create a new redis connection
                         $redis = new \Redis();
 
-                        // try to connect
-                        $connected = $redis->pconnect(
-                            $config['host'],
-                            $config['port'],
-                            $config['connect_timeout']
-                        );
-
-                        // if not connected, return null
-                        if (! $connected) {
+                        // try to connect, authenticate and select the database
+                        if (! self::connectRedis($redis, $config, (float) ($config['connect_timeout'] ?? 2))) {
                             return null;
                         }
-
-                        // select the database
-                        $redis->select($config['database']);
 
                         // if we have a prefix
                         if (! empty($config['prefix'])) {
@@ -467,6 +520,7 @@ if (! class_exists('\KPT\CacheConnectionPool')) {
                         // set options
                         $memcached->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
                         $memcached->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
+                        self::applyMemcachedAuth($memcached, $config);
 
                         // Test connection
                         $stats = $memcached->getStats();

@@ -432,15 +432,8 @@ if (! class_exists('\KPT\CacheHealthMonitor')) {
                 // get the configuration
                 $config = CacheConfig::get('redis');
 
-                // connect to redis
-                $connected = $redis->pconnect(
-                    $config['host'] ?? '127.0.0.1',
-                    $config['port'] ?? 6379,
-                    2
-                );
-
-                // if connection failed
-                if (! $connected) {
+                // connect, authenticate and select the database
+                if (! CacheConnectionPool::connectRedis($redis, $config, 2.0)) {
                     $result['message'] = 'Failed to connect to Redis server';
                     return $result;
                 }
@@ -518,6 +511,7 @@ if (! class_exists('\KPT\CacheHealthMonitor')) {
                     $config['host'] ?? '127.0.0.1',
                     $config['port'] ?? 11211
                 );
+                CacheConnectionPool::applyMemcachedAuth($memcached, $config);
 
                 // Test connection with stats
                 $stats = $memcached->getStats();
@@ -1270,7 +1264,7 @@ if (! class_exists('\KPT\CacheHealthMonitor')) {
                 $config = CacheConfig::get('redis');
 
                 // connect to redis
-                if (! $redis->pconnect($config['host'] ?? '127.0.0.1', $config['port'] ?? 6379, 2)) {
+                if (! CacheConnectionPool::connectRedis($redis, $config, 2.0)) {
                     return ['error' => 'Failed to connect to Redis'];
                 }
 
@@ -1312,6 +1306,7 @@ if (! class_exists('\KPT\CacheHealthMonitor')) {
 
                 // add server
                 $memcached->addServer($config['host'] ?? '127.0.0.1', $config['port'] ?? 11211);
+                CacheConnectionPool::applyMemcachedAuth($memcached, $config);
                 $stats = $memcached->getStats();
                 $memcached->quit();
 

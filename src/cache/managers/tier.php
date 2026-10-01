@@ -814,15 +814,8 @@ if (! class_exists('\KPT\CacheTierManager')) {
                 $redis = new \Redis();
                 $config = CacheConfig::get('redis');
 
-                // Test connection with timeout
-                $connected = $redis->pconnect(
-                    $config['host'] ?? '127.0.0.1',
-                    $config['port'] ?? 6379,
-                    2 // 2 second timeout
-                );
-
-                // Verify connection succeeded
-                if (! $connected) {
+                // connect, authenticate and select the database
+                if (! CacheConnectionPool::connectRedis($redis, $config, 2.0)) {
                     return false;
                 }
 
@@ -887,11 +880,11 @@ if (! class_exists('\KPT\CacheTierManager')) {
                 $memcached = new \Memcached();
                 $config = CacheConfig::get('memcached');
 
-                // Add server
                 $memcached->addServer(
                     $config['host'] ?? '127.0.0.1',
                     $config['port'] ?? 11211
                 );
+                CacheConnectionPool::applyMemcachedAuth($memcached, $config);
 
                 // Test connection by getting stats
                 $stats = $memcached->getStats();

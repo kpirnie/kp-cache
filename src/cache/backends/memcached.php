@@ -51,7 +51,8 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // create new memcached instance
                 $memcached = new \Memcached();
-                $memcached->addServer($config['host'], $config['port']);
+                $memcached -> addServer($config['host'], $config['port']);
+                CacheConnectionPool::applyMemcachedAuth($memcached, $config);
 
                 // Set basic options for testing
                 $memcached->setOption(\Memcached::OPT_CONNECT_TIMEOUT, 1000);
@@ -153,7 +154,8 @@ if (! trait_exists('\KPT\CacheMemcached')) {
                     $memcached->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
                     $memcached->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
                     $memcached->setOption(\Memcached::OPT_CONNECT_TIMEOUT, ($config['connection_timeout'] ?? 5) * 1000);
-                    $memcached->setOption(\Memcached::OPT_POLL_TIMEOUT, 1000);
+                    $memcached -> setOption(\Memcached::OPT_POLL_TIMEOUT, 1000);
+                    CacheConnectionPool::applyMemcachedAuth($memcached, $config);
 
                     // Test connection
                     $stats = $memcached->getStats();
