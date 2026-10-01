@@ -285,6 +285,39 @@ if (! class_exists('Cache')) {
         }
 
         /**
+         * Enable/disable connection pooling
+         *
+         * Toggles connection pooling on or off, automatically closing all
+         * connections when disabled and initializing pools when enabled.
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param bool $enabled Whether to enable connection pooling, default false
+         * @return void Returns nothing
+         */
+        public static function setConnectionPooling(bool $enabled = false): void
+        {
+
+            // set the connection pooling status
+            self::$_connection_pooling_enabled = $enabled;
+
+            // if not enabled
+            if (! $enabled) {
+                // close all connection pools
+                CacheConnectionPool::closeAll();
+
+                // otherwise if we're initialized
+            } elseif (self::$_initialized) {
+                // initialize the connection pools
+                self::initializeConnectionPools();
+            }
+
+            // debug logging
+            Logger::debug('Cache Connection Pool Initialized');
+        }
+
+        /**
          * Initialize fallback caching directory
          *
          * Creates and validates the cache directory for file-based caching. Tries multiple
