@@ -103,6 +103,7 @@ if (! class_exists('\KPT\CacheConfig', false)) {
         // class properties
         private static array $current_configs = [];
         private static bool $initialized = false;
+        private static array $resolved_configs = [];
 
         /**
          * Initialize configuration with defaults
@@ -169,6 +170,7 @@ if (! class_exists('\KPT\CacheConfig', false)) {
 
             // Set the global path
             self::$global_config['path'] = $normalized_path;
+            self::$resolved_configs = [];
 
             Logger::debug("Cache Global Path Set", ['path' => $normalized_path]);
             return true;
@@ -200,6 +202,7 @@ if (! class_exists('\KPT\CacheConfig', false)) {
 
             // set the global prefix
             self::$global_config['prefix'] = $prefix;
+            self::$resolved_configs = [];
 
             // generated keys may depend on the global prefix
             if (class_exists('\KPT\CacheKeyManager', false)) {
@@ -294,6 +297,9 @@ if (! class_exists('\KPT\CacheConfig', false)) {
         public static function resetGlobal(): void
         {
 
+            // drop resolved configs
+            self::$resolved_configs = [];
+
             // reset global config to defaults
             self::$global_config = [
                 'path' => sys_get_temp_dir() . '/kpt_cache/',
@@ -370,19 +376,18 @@ if (! class_exists('\KPT\CacheConfig', false)) {
             // make sure we're initialized
             self::initialize();
 
+            // return the resolved config if we already have it
+            if (isset(self::$resolved_configs[$backend])) {
+                return self::$resolved_configs[$backend];
+            }
+
             // if the backend doesn't exist, return empty array
             if (! isset(self::$current_configs[$backend])) {
                 return [];
             }
 
-            // get the backend config
-            $config = self::$current_configs[$backend];
-
-            // Apply global defaults where backend-specific values are null
-            $config = self::applyGlobalDefaults($config, $backend);
-
-            // return the config
-            return $config;
+            // resolve global defaults once and hold onto it
+            return self::$resolved_configs[$backend] = self::applyGlobalDefaults(self::$current_configs[$backend], $backend);
         }
 
         /**
@@ -419,6 +424,7 @@ if (! class_exists('\KPT\CacheConfig', false)) {
                 self::$default_configs[$backend],
                 $config
             );
+            self::$resolved_configs = [];
 
             // generated keys may depend on this config's prefix
             if (class_exists('\KPT\CacheKeyManager', false)) {
@@ -553,6 +559,7 @@ if (! class_exists('\KPT\CacheConfig', false)) {
 
             // set the path field
             self::$current_configs[$backend][$path_field] = $normalized_path;
+            self::$resolved_configs = [];
 
             // return success
             return true;
@@ -726,6 +733,7 @@ if (! class_exists('\KPT\CacheConfig', false)) {
                 // set the configurations
                 self::$global_config = $config_data['global'];
                 self::$current_configs = $config_data['current'];
+                self::$resolved_configs = [];
                 self::$initialized = $config_data['initialized'] ?? true;
 
                 // return success

@@ -541,8 +541,11 @@ if (! class_exists('\KPT\Cache', false)) {
 
                 // if it was found
                 if ($result !== false) {
-                    // Log cache hit
-                    Logger::debug("Cache Hit", ['tier' => $tier, 'key' => $key]);
+
+                    // debug log hits only
+                    if ($result !== false) {
+                        Logger::debug('Cache Hit', ['tier' => $tier, 'key' => $key, 'tier_key' => $tier_key]);
+                    }
 
                     // Promote to higher tiers for faster future access
                     self::promoteToHigherTiers($key, $result, $tier);
