@@ -97,7 +97,7 @@ if (! class_exists('\KPT\CacheKeyManager')) {
             self::$_last_error = null;
 
             // Check cache first
-            $cache_key = md5($raw_key . $tier . ($namespace ?? '') . (self::$_global_namespace ?? ''));
+            $cache_key = $tier . "\0" . ($namespace ?? '') . "\0" . (self::$_global_namespace ?? '') . "\0" . $raw_key;
             if (isset(self::$_key_cache[$cache_key])) {
                 return self::$_key_cache[$cache_key];
             }

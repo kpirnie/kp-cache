@@ -195,6 +195,11 @@ if (! class_exists('\KPT\CacheConfig')) {
 
             // set the global prefix
             self::$global_config['prefix'] = $prefix;
+
+            // generated keys may depend on the global prefix
+            if (class_exists('\KPT\CacheKeyManager', false)) {
+                CacheKeyManager::clearKeyCache();
+            }
         }
 
         /**
@@ -412,6 +417,11 @@ if (! class_exists('\KPT\CacheConfig')) {
                 self::$default_configs[$backend],
                 $config
             );
+
+            // generated keys may depend on this config's prefix
+            if (class_exists('\KPT\CacheKeyManager', false)) {
+                CacheKeyManager::clearKeyCache();
+            }
 
             // debug logging
             Logger::debug("Cache Config Set", ['config' => $config]);
