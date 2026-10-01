@@ -662,7 +662,7 @@ if (! class_exists('\KPT\CacheTierManager')) {
                 $test_size = 1024;
 
                 // Attempt to open shared memory segment
-                $segment = @shmop_open($test_key, 'c', 0644, $test_size);
+                $segment = @shmop_open($test_key, 'c', 0600, $test_size);
                 if ($segment === false) {
                     return false;
                 }

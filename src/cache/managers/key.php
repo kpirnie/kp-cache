@@ -223,13 +223,11 @@ if (! class_exists('\KPT\CacheKeyManager')) {
             // Create deterministic key using consistent hashing
             $full_key = $prefix . $raw_key;
 
-            // Use CRC32 for consistent numeric generation
-            $hash = crc32($full_key);
+            // use the full 31-bit hash space so keys rarely share a segment
+            $shmop_key = hexdec(substr(hash('xxh3', $full_key), 0, 8)) & 0x7FFFFFFF;
 
-            // Ensure it's positive and within reasonable range
-            $shmop_key = $base_key + abs($hash % 100000);
-
-            return $shmop_key;
+            // ipc key 0 is IPC_PRIVATE, never use it
+            return $shmop_key === 0 ? ($base_key & 0x7FFFFFFF) : $shmop_key;
         }
 
         /**

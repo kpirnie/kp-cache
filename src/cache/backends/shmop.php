@@ -153,7 +153,7 @@ if (! trait_exists('\KPT\CacheSHMOP')) {
                 $unserialized = @unserialize(trim($data, "\0"), ['allowed_classes' => CacheConfig::getAllowedClasses()]);
 
                 // check if we have valid cached data
-                if (is_array($unserialized) && isset($unserialized['expires'], $unserialized['data'])) {
+                if (is_array($unserialized) && isset($unserialized['expires'], $unserialized['data']) && ($unserialized['key'] ?? null) === $key) {
                     // Check if expired
                     if ($unserialized['expires'] > time()) {
                         return $unserialized['data'];
@@ -204,6 +204,7 @@ if (! trait_exists('\KPT\CacheSHMOP')) {
 
                 // Prepare data with expiration
                 $cache_data = [
+                    'key' => $key,
                     'expires' => time() + $ttl,
                     'data' => $data
                 ];
@@ -220,7 +221,7 @@ if (! trait_exists('\KPT\CacheSHMOP')) {
 
                 // If doesn't exist, create new segment
                 if ($segment === false) {
-                    $segment = @shmop_open($shmop_key, 'c', 0644, $segment_size);
+                    $segment = @shmop_open($shmop_key, 'c', 0600, $segment_size);
                 }
 
                 // check if segment creation/opening failed
