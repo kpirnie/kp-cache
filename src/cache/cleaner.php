@@ -32,7 +32,7 @@ if (php_sapi_name() !== 'cli') {
 }
 
 // Check if the class doesn't exist before defining it
-if (!class_exists('KPT\CacheCleaner')) {
+if (!class_exists('\KPT\CacheCleaner')) {
 
     /**
      * Cache Cleaner - Comprehensive Cache Management Utility

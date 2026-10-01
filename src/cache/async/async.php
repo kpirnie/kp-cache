@@ -13,7 +13,7 @@
 namespace KPT;
 
 // make sure the trait doesn't exist
-if (! trait_exists('CacheAsync')) {
+if (! trait_exists('\KPT\CacheAsync')) {
 
     /**
      * KPT Cache Async Operations Trait

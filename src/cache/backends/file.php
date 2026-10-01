@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('CacheFile')) {
+if (! trait_exists('\KPT\CacheFile')) {
 
     /**
      * KPT Cache File Trait
@@ -72,7 +72,7 @@ if (! trait_exists('CacheFile')) {
                     Logger::debug("Directory is writable (write test passed)", ['path' => $path]);
                     return true;
 
-                // otherwise, it's really not writable
+                    // otherwise, it's really not writable
                 } else {
                     Logger::debug("Directory not writable (trying next fallback)", [
                         'path' => $path,
@@ -319,7 +319,7 @@ if (! trait_exists('CacheFile')) {
             // setup the count to return
             $count = 0;
 
-                        // Clean up file cache
+            // Clean up file cache
             $files = glob(self::getCachePath() . '*');
 
             // loop over each file
@@ -433,7 +433,7 @@ if (! trait_exists('CacheFile')) {
             // try to fix permissions
             try {
                 // Try different permission levels
-                $permission_levels = [ 0755, 0775, 0777 ];
+                $permission_levels = [0755, 0775, 0777];
 
                 // loop through each permission level
                 foreach ($permission_levels as $perms) {
@@ -476,9 +476,9 @@ if (! trait_exists('CacheFile')) {
                     }
                 }
 
-            // whoopsie... setup the error
+                // whoopsie... setup the error
             } catch (\Exception $e) {
-                self::$_last_error = "Permission fix failed: " . $e -> getMessage();
+                self::$_last_error = "Permission fix failed: " . $e->getMessage();
             }
 
             // failed to fix permissions
@@ -502,7 +502,7 @@ if (! trait_exists('CacheFile')) {
             // setup suggestions array
             $suggestions = [
                 'current' => self::getCachePath(),
-                'alternatives' => [ ]
+                'alternatives' => []
             ];
 
             // setup test paths to check
@@ -534,7 +534,7 @@ if (! trait_exists('CacheFile')) {
                 }
 
                 // add to suggestions
-                $suggestions['alternatives'][ ] = $status;
+                $suggestions['alternatives'][] = $status;
             }
 
             // return the suggestions
@@ -623,7 +623,7 @@ if (! trait_exists('CacheFile')) {
                         }
                     }
 
-                // whoopsie... skip files we can't read
+                    // whoopsie... skip files we can't read
                 } catch (\Exception $e) {
                     // Skip files we can't read
                 }
@@ -694,7 +694,7 @@ if (! trait_exists('CacheFile')) {
                         }
                     }
 
-                // whoopsie... skip files we can't process
+                    // whoopsie... skip files we can't process
                 } catch (\Exception $e) {
                     // Skip files we can't process
                 }
@@ -721,12 +721,12 @@ if (! trait_exists('CacheFile')) {
             // get cache path and files
             $cache_path = self::getCachePath();
             $files = glob($cache_path . '*');
-            $file_list = [ ];
+            $file_list = [];
             $now = time();
 
             // check if we have files
             if (! is_array($files)) {
-                return [ ];
+                return [];
             }
 
             // loop through each file
@@ -770,13 +770,13 @@ if (! trait_exists('CacheFile')) {
                         }
                     }
 
-                // whoopsie... add error to file info
+                    // whoopsie... add error to file info
                 } catch (\Exception $e) {
-                    $file_info['error'] = $e -> getMessage();
+                    $file_info['error'] = $e->getMessage();
                 }
 
                 // add to file list
-                $file_list[ ] = $file_info;
+                $file_list[] = $file_info;
             }
 
             // Sort by modification time (newest first)
@@ -823,9 +823,9 @@ if (! trait_exists('CacheFile')) {
                 // failed to store
                 return false;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "File cache test failed: " . $e -> getMessage();
+                self::$_last_error = "File cache test failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -887,9 +887,9 @@ if (! trait_exists('CacheFile')) {
                 // backup successful
                 return true;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "Cache backup failed: " . $e -> getMessage();
+                self::$_last_error = "Cache backup failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -951,9 +951,9 @@ if (! trait_exists('CacheFile')) {
                 // restore successful
                 return true;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "Cache restore failed: " . $e -> getMessage();
+                self::$_last_error = "Cache restore failed: " . $e->getMessage();
                 return false;
             }
         }

@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('CacheRedisAsync')) {
+if (! trait_exists('\KPT\CacheRedisAsync')) {
 
     /**
      * KPT Cache Redis Async Trait

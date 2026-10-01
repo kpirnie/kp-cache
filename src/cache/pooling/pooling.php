@@ -17,7 +17,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('CacheConnectionPool')) {
+if (! class_exists('\KPT\CacheConnectionPool')) {
 
     /**
      * KPT Cache Connection Pool Manager

@@ -16,7 +16,7 @@
 namespace KPT;
 
 // make sure the trait doesn't exist first
-if (! trait_exists('CacheArray')) {
+if (! trait_exists('\KPT\CacheArray')) {
 
     /**
      * KPT Cache Array Trait

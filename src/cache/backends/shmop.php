@@ -13,7 +13,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('CacheSHMOP')) {
+if (! trait_exists('\KPT\CacheSHMOP')) {
 
     /**
      * KPT Cache SHMOP Trait
@@ -91,9 +91,9 @@ if (! trait_exists('CacheSHMOP')) {
                     && isset($unserialized['data'])
                     && $unserialized['data'] === $test_data;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "SHMOP test failed: " . $e -> getMessage();
+                self::$_last_error = "SHMOP test failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -163,9 +163,9 @@ if (! trait_exists('CacheSHMOP')) {
                     }
                 }
 
-            // whoopsie... setup the error
+                // whoopsie... setup the error
             } catch (\Exception $e) {
-                self::$_last_error = "SHMOP get error: " . $e -> getMessage();
+                self::$_last_error = "SHMOP get error: " . $e->getMessage();
             }
 
             // return false if not found or error
@@ -242,9 +242,9 @@ if (! trait_exists('CacheSHMOP')) {
                     return true;
                 }
 
-            // whoopsie... setup the error
+                // whoopsie... setup the error
             } catch (\Exception $e) {
-                self::$_last_error = "SHMOP set error: " . $e -> getMessage();
+                self::$_last_error = "SHMOP set error: " . $e->getMessage();
             }
 
             // return false on failure
@@ -413,7 +413,7 @@ if (! trait_exists('CacheSHMOP')) {
                     return $result;
                 }
 
-            // whoopsie...
+                // whoopsie...
             } catch (\Exception $e) {
                 // log the error
                 Logger::error("SHMOP delete error", ['error' => $e->getMessage()]);

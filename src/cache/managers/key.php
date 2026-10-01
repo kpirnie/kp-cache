@@ -15,7 +15,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('CacheKeyManager')) {
+if (! class_exists('\KPT\CacheKeyManager')) {
 
     /**
      * KPT Cache Key Manager
@@ -97,7 +97,7 @@ if (! class_exists('CacheKeyManager')) {
             self::$_last_error = null;
 
             // Check cache first
-            $cache_key = md5($raw_key . $tier . ( $namespace ?? '' ) . ( self::$_global_namespace ?? '' ));
+            $cache_key = md5($raw_key . $tier . ($namespace ?? '') . (self::$_global_namespace ?? ''));
             if (isset(self::$_key_cache[$cache_key])) {
                 return self::$_key_cache[$cache_key];
             }
@@ -660,7 +660,7 @@ if (! class_exists('CacheKeyManager')) {
          */
         public static function getLastError(): ?string
         {
-            Logger::error("Cache Key Error", [ 'error' => self::$_last_error ]);
+            Logger::error("Cache Key Error", ['error' => self::$_last_error]);
             return self::$_last_error;
         }
 

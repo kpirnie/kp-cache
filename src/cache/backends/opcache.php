@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't exist first
-if (! trait_exists('CacheOPCache')) {
+if (! trait_exists('\KPT\CacheOPCache')) {
 
     /**
      * KPT Cache OPCache Trait
@@ -128,9 +128,9 @@ if (! trait_exists('CacheOPCache')) {
                 // directory is ready
                 return true;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "OPcache directory creation failed: " . $e -> getMessage();
+                self::$_last_error = "OPcache directory creation failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -175,7 +175,7 @@ if (! trait_exists('CacheOPCache')) {
                         // return the cached value
                         return $data['value'];
 
-                    // otherwise it's expired
+                        // otherwise it's expired
                     } else {
                         // remove file
                         @unlink($temp_file);
@@ -187,9 +187,9 @@ if (! trait_exists('CacheOPCache')) {
                     }
                 }
 
-            // whoopsie... set the last error
+                // whoopsie... set the last error
             } catch (\Exception $e) {
-                self::$_last_error = "OPcache get error: " . $e -> getMessage();
+                self::$_last_error = "OPcache get error: " . $e->getMessage();
             }
 
             // return false
@@ -230,7 +230,7 @@ if (! trait_exists('CacheOPCache')) {
             }
 
             // Create the PHP content with proper escaping
-            $content = "<?php return " . var_export([ 'expires' => $expires, 'value' => $_data ], true) . ";";
+            $content = "<?php return " . var_export(['expires' => $expires, 'value' => $_data], true) . ";";
 
             // try to write the cache file
             try {
@@ -256,15 +256,15 @@ if (! trait_exists('CacheOPCache')) {
                     }
                     return true;
 
-                // write failed
+                    // write failed
                 } else {
                     self::$_last_error = "OPcache: Failed to write file: {$temp_file}";
                     return false;
                 }
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "OPcache set error: " . $e -> getMessage();
+                self::$_last_error = "OPcache set error: " . $e->getMessage();
                 return false;
             }
         }
@@ -310,9 +310,9 @@ if (! trait_exists('CacheOPCache')) {
                 // return write success
                 return $result !== false;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "OPcache manual write error: " . $e -> getMessage();
+                self::$_last_error = "OPcache manual write error: " . $e->getMessage();
                 return false;
             }
         }
@@ -401,7 +401,7 @@ if (! trait_exists('CacheOPCache')) {
                 if (
                     $content !== false &&
                     (strpos($content, "<?php return array") === 0 ||
-                    strpos($content, "<?php return [") === 0)
+                        strpos($content, "<?php return [") === 0)
                 ) {
                     // This looks like our cache file format
 
@@ -443,7 +443,7 @@ if (! trait_exists('CacheOPCache')) {
 
             // check if opcache functions exist
             if (! function_exists('opcache_get_status')) {
-                return [ 'error' => 'OPcache not available' ];
+                return ['error' => 'OPcache not available'];
             }
 
             // try to get opcache statistics
@@ -453,7 +453,7 @@ if (! trait_exists('CacheOPCache')) {
 
                 // check if we got valid stats
                 if (! $stats) {
-                    return [ 'error' => 'OPcache not enabled' ];
+                    return ['error' => 'OPcache not enabled'];
                 }
 
                 // Add our specific file count
@@ -476,9 +476,9 @@ if (! trait_exists('CacheOPCache')) {
                 // return the stats
                 return $stats;
 
-            // whoopsie... return error
+                // whoopsie... return error
             } catch (\Exception $e) {
-                return [ 'error' => 'Failed to get OPcache stats: ' . $e -> getMessage() ];
+                return ['error' => 'Failed to get OPcache stats: ' . $e->getMessage()];
             }
         }
 
@@ -522,9 +522,9 @@ if (! trait_exists('CacheOPCache')) {
                 // failed to store
                 return false;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "OPcache test failed: " . $e -> getMessage();
+                self::$_last_error = "OPcache test failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -586,7 +586,7 @@ if (! trait_exists('CacheOPCache')) {
                         }
                     }
 
-                // whoopsie... file might be corrupted, remove it
+                    // whoopsie... file might be corrupted, remove it
                 } catch (\Exception $e) {
                     // If we can't read the file, it might be corrupted - remove it
                     if (function_exists('opcache_invalidate')) {
@@ -626,7 +626,7 @@ if (! trait_exists('CacheOPCache')) {
             // find all our cache files
             $pattern = $cache_path . $prefix . '*.php';
             $files = glob($pattern);
-            $file_details = [ ];
+            $file_details = [];
 
             // check if we found files
             if (! is_array($files)) {
@@ -667,17 +667,17 @@ if (! trait_exists('CacheOPCache')) {
                     }
 
                     // add to file details
-                    $file_details[ ] = $file_info;
+                    $file_details[] = $file_info;
 
-                // whoopsie... add error info to file details
+                    // whoopsie... add error info to file details
                 } catch (\Exception $e) {
-                    $file_details[ ] = [
+                    $file_details[] = [
                         'file' => basename($file),
                         'full_path' => $file,
                         'size' => filesize($file),
                         'created' => filectime($file),
                         'modified' => filemtime($file),
-                        'error' => $e -> getMessage(),
+                        'error' => $e->getMessage(),
                         'valid' => false,
                         'readable' => is_readable($file),
                         'writable' => is_writable($file)
@@ -716,8 +716,8 @@ if (! trait_exists('CacheOPCache')) {
                 'path_writable' => false,
                 'path_readable' => false,
                 'php_version' => PHP_VERSION,
-                'issues' => [ ],
-                'recommendations' => [ ]
+                'issues' => [],
+                'recommendations' => []
             ];
 
             // Check path status
@@ -727,23 +727,23 @@ if (! trait_exists('CacheOPCache')) {
 
             // Identify issues
             if (! $diagnosis['opcache_available']) {
-                $diagnosis['issues'][ ] = 'OPcache extension not loaded';
-                $diagnosis['recommendations'][ ] = 'Install and enable PHP OPcache extension';
+                $diagnosis['issues'][] = 'OPcache extension not loaded';
+                $diagnosis['recommendations'][] = 'Install and enable PHP OPcache extension';
             }
 
             if (! $diagnosis['opcache_enabled']) {
-                $diagnosis['issues'][ ] = 'OPcache not enabled';
-                $diagnosis['recommendations'][ ] = 'Enable OPcache in php.ini with opcache.enable=1';
+                $diagnosis['issues'][] = 'OPcache not enabled';
+                $diagnosis['recommendations'][] = 'Enable OPcache in php.ini with opcache.enable=1';
             }
 
             if (! $diagnosis['path_exists']) {
-                $diagnosis['issues'][ ] = 'Cache directory does not exist';
-                $diagnosis['recommendations'][ ] = "Create directory: {$cache_path}";
+                $diagnosis['issues'][] = 'Cache directory does not exist';
+                $diagnosis['recommendations'][] = "Create directory: {$cache_path}";
             }
 
             if (! $diagnosis['path_writable']) {
-                $diagnosis['issues'][ ] = 'Cache directory not writable';
-                $diagnosis['recommendations'][ ] = "Fix permissions: chmod 755 {$cache_path}";
+                $diagnosis['issues'][] = 'Cache directory not writable';
+                $diagnosis['recommendations'][] = "Fix permissions: chmod 755 {$cache_path}";
             }
 
             // return the diagnosis

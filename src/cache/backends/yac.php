@@ -13,7 +13,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('CacheYAC')) {
+if (! trait_exists('\KPT\CacheYAC')) {
 
     /**
      * KPT Cache YAC Trait
@@ -66,9 +66,9 @@ if (! trait_exists('CacheYAC')) {
                 // failed to store
                 return false;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "YAC test failed: " . $e -> getMessage();
+                self::$_last_error = "YAC test failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -108,9 +108,9 @@ if (! trait_exists('CacheYAC')) {
                 // YAC returns false for non-existent keys
                 return $value !== false ? $value : false;
 
-            // whoopsie... setup the error
+                // whoopsie... setup the error
             } catch (\Exception $e) {
-                self::$_last_error = "YAC get error: " . $e -> getMessage();
+                self::$_last_error = "YAC get error: " . $e->getMessage();
             }
 
             // return false if not found or error
@@ -149,9 +149,9 @@ if (! trait_exists('CacheYAC')) {
                 $prefixed_key = $prefix . $key;
                 return yac_set($prefixed_key, $data, $ttl);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "YAC set error: " . $e -> getMessage();
+                self::$_last_error = "YAC set error: " . $e->getMessage();
                 return false;
             }
         }
@@ -191,11 +191,11 @@ if (! trait_exists('CacheYAC')) {
                 // return deleting the item
                 return yac_delete($prefixed_key);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
                 // log the error
-                Logger::error("YAC delete error", ['error' => $e -> getMessage()]);
-                self::$_last_error = "YAC delete error: " . $e -> getMessage();
+                Logger::error("YAC delete error", ['error' => $e->getMessage()]);
+                self::$_last_error = "YAC delete error: " . $e->getMessage();
             }
 
             // default return
@@ -229,10 +229,10 @@ if (! trait_exists('CacheYAC')) {
                 // return flushing the cache
                 return yac_flush();
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "YAC clear error: " . $e -> getMessage();
-                Logger::error("YAC clear error", ['error' => $e -> getMessage()]);
+                self::$_last_error = "YAC clear error: " . $e->getMessage();
+                Logger::error("YAC clear error", ['error' => $e->getMessage()]);
                 return false;
             }
         }

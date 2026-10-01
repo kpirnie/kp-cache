@@ -17,7 +17,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('CacheConfig')) {
+if (! class_exists('\KPT\CacheConfig')) {
 
     /**
      * KPT Cache Configuration Manager
@@ -264,7 +264,7 @@ if (! class_exists('CacheConfig')) {
             self::$global_config['allowed_backends'] = $backends;
 
             // Reset tier discovery when allowed backends change
-            if (class_exists('CacheTierManager')) {
+            if (class_exists('\KPT\CacheTierManager')) {
                 CacheTierManager::reset();
             }
         }
@@ -557,7 +557,7 @@ if (! class_exists('CacheConfig')) {
                     // add issue
                     $issues[] = "Global path parent directory does not exist: {$parent_dir}";
 
-                // check if parent directory is writable
+                    // check if parent directory is writable
                 } elseif (! is_writable($parent_dir)) {
                     // add issue
                     $issues[] = "Global path parent directory is not writable: {$parent_dir}";
@@ -569,7 +569,7 @@ if (! class_exists('CacheConfig')) {
                     $issues[] = "Global path exists but is not writable: {$path}";
                 }
 
-            // otherwise
+                // otherwise
             } else {
                 // add issue
                 $issues[] = "Global path is not set";
@@ -643,9 +643,9 @@ if (! class_exists('CacheConfig')) {
                 // return success
                 return true;
 
-            // whoopsie...
+                // whoopsie...
             } catch (\Exception $e) {
-                Logger::error('Cache Config Import Error', ['error' => $e -> getMessage()]);
+                Logger::error('Cache Config Import Error', ['error' => $e->getMessage()]);
                 // return failure
                 return false;
             }
@@ -698,11 +698,11 @@ if (! class_exists('CacheConfig')) {
                 };
 
                 // if we have a path field and it's using global
-                if ($path_field && ( ! isset($raw_config[$path_field]) || $raw_config[$path_field] === null )) {
+                if ($path_field && (! isset($raw_config[$path_field]) || $raw_config[$path_field] === null)) {
                     // using global path
                     $summary['backends_using_global_path'][] = $backend;
 
-                // otherwise if we have a path field
+                    // otherwise if we have a path field
                 } elseif ($path_field) {
                     // using custom path
                     $summary['backends_with_custom_path'][] = $backend;

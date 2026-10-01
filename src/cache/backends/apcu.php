@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('CacheAPCU')) {
+if (! trait_exists('\KPT\CacheAPCU')) {
 
     /**
      * KPT Cache - APCu Caching Trait
@@ -66,9 +66,9 @@ if (! trait_exists('CacheAPCU')) {
                 // default return
                 return false;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu test failed: " . $e -> getMessage();
+                self::$_last_error = "APCu test failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -94,7 +94,7 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // Setup the prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // Fetch the value
                 $success = false;
@@ -105,9 +105,9 @@ if (! trait_exists('CacheAPCU')) {
                     return $value;
                 }
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu get error: " . $e -> getMessage();
+                self::$_last_error = "APCu get error: " . $e->getMessage();
             }
 
             // default return
@@ -137,14 +137,14 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // setup the config and prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // store and return the result
                 return apcu_store($prefixed_key, $_data, $_length);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu set error: " . $e -> getMessage();
+                self::$_last_error = "APCu set error: " . $e->getMessage();
                 return false;
             }
         }
@@ -170,14 +170,14 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // setup the config and prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // delete and return the result
                 return apcu_delete($prefixed_key);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu delete error: " . $e -> getMessage();
+                self::$_last_error = "APCu delete error: " . $e->getMessage();
                 return false;
             }
         }
@@ -236,9 +236,9 @@ if (! trait_exists('CacheAPCU')) {
                 // Fallback to clearing entire cache if we can't filter by prefix
                 return function_exists('apcu_clear_cache') ? apcu_clear_cache() : false;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu clear error: " . $e -> getMessage();
+                self::$_last_error = "APCu clear error: " . $e->getMessage();
                 return false;
             }
         }
@@ -256,13 +256,13 @@ if (! trait_exists('CacheAPCU')) {
 
             // If APCu is not enabled, return error
             if (! function_exists('apcu_enabled') || ! apcu_enabled()) {
-                return [ 'error' => 'APCu not available' ];
+                return ['error' => 'APCu not available'];
             }
 
             // try to get the stats
             try {
                 // setup the stats array
-                $stats = [ ];
+                $stats = [];
 
                 // Get basic cache info
                 if (function_exists('apcu_cache_info')) {
@@ -310,9 +310,9 @@ if (! trait_exists('CacheAPCU')) {
                 // return the stats
                 return $stats;
 
-            // whoopsie... return the error
+                // whoopsie... return the error
             } catch (\Exception $e) {
-                return [ 'error' => $e -> getMessage() ];
+                return ['error' => $e->getMessage()];
             }
         }
 
@@ -337,12 +337,12 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // setup the config and prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // check and return the result
                 return apcu_exists($prefixed_key);
 
-            // whoopsie... return false
+                // whoopsie... return false
             } catch (\Exception $e) {
                 return false;
             }
@@ -369,7 +369,7 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // setup the config and prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // APCu doesn't have a direct TTL function, so we need to check cache info
                 if (function_exists('apcu_cache_info')) {
@@ -406,7 +406,7 @@ if (! trait_exists('CacheAPCU')) {
                 // Key not found
                 return -2;
 
-            // whoopsie... return -1
+                // whoopsie... return -1
             } catch (\Exception $e) {
                 return -1;
             }
@@ -434,14 +434,14 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // setup the config and prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // increment and return the result
                 return apcu_inc($prefixed_key, $step);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu increment error: " . $e -> getMessage();
+                self::$_last_error = "APCu increment error: " . $e->getMessage();
                 return false;
             }
         }
@@ -468,14 +468,14 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // setup the config and prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // decrement and return the result
                 return apcu_dec($prefixed_key, $step);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu decrement error: " . $e -> getMessage();
+                self::$_last_error = "APCu decrement error: " . $e->getMessage();
                 return false;
             }
         }
@@ -503,14 +503,14 @@ if (! trait_exists('CacheAPCU')) {
             try {
                 // setup the config and prefixed key
                 $config = CacheConfig::get('apcu');
-                $prefixed_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . $_key;
+                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
                 // perform CAS and return the result
                 return apcu_cas($prefixed_key, $old_value, $new_value);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu CAS error: " . $e -> getMessage();
+                self::$_last_error = "APCu CAS error: " . $e->getMessage();
                 return false;
             }
         }
@@ -529,7 +529,7 @@ if (! trait_exists('CacheAPCU')) {
 
             // If APCu is not enabled, return empty array
             if (! function_exists('apcu_enabled') || ! apcu_enabled()) {
-                return [ ];
+                return [];
             }
 
             // try to get multiple keys
@@ -548,11 +548,11 @@ if (! trait_exists('CacheAPCU')) {
 
                 // check if we got results
                 if (! is_array($results)) {
-                    return [ ];
+                    return [];
                 }
 
                 // Remove prefix from results
-                $clean_results = [ ];
+                $clean_results = [];
                 foreach ($results as $prefixed_key => $value) {
                     $original_key = substr($prefixed_key, strlen($prefix));
                     $clean_results[$original_key] = $value;
@@ -561,10 +561,10 @@ if (! trait_exists('CacheAPCU')) {
                 // return the clean results
                 return $clean_results;
 
-            // whoopsie... setup the error and return empty array
+                // whoopsie... setup the error and return empty array
             } catch (\Exception $e) {
-                self::$_last_error = "APCu multi-get error: " . $e -> getMessage();
-                return [ ];
+                self::$_last_error = "APCu multi-get error: " . $e->getMessage();
+                return [];
             }
         }
 
@@ -593,7 +593,7 @@ if (! trait_exists('CacheAPCU')) {
                 $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
 
                 // Prefix all keys
-                $prefixed_items = [ ];
+                $prefixed_items = [];
                 foreach ($items as $key => $value) {
                     $prefixed_items[$prefix . $key] = $value;
                 }
@@ -604,9 +604,9 @@ if (! trait_exists('CacheAPCU')) {
                 // Return true if no keys failed
                 return empty($failed_keys);
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "APCu multi-set error: " . $e -> getMessage();
+                self::$_last_error = "APCu multi-set error: " . $e->getMessage();
                 return false;
             }
         }
@@ -625,7 +625,7 @@ if (! trait_exists('CacheAPCU')) {
 
             // If APCu is not enabled, return empty array
             if (! function_exists('apcu_enabled') || ! apcu_enabled()) {
-                return [ ];
+                return [];
             }
 
             // try to delete multiple keys
@@ -645,19 +645,19 @@ if (! trait_exists('CacheAPCU')) {
                 // check if we got an array result
                 if (is_array($result)) {
                     // Remove prefix from failed keys
-                    $failed_keys = [ ];
+                    $failed_keys = [];
                     foreach ($result as $prefixed_key) {
-                        $failed_keys[ ] = substr($prefixed_key, strlen($prefix));
+                        $failed_keys[] = substr($prefixed_key, strlen($prefix));
                     }
                     return $failed_keys;
                 }
 
                 // If result is boolean, return empty array on success
-                return $result ? [ ] : $keys;
+                return $result ? [] : $keys;
 
-            // whoopsie... setup the error and return all keys as failed
+                // whoopsie... setup the error and return all keys as failed
             } catch (\Exception $e) {
-                self::$_last_error = "APCu multi-delete error: " . $e -> getMessage();
+                self::$_last_error = "APCu multi-delete error: " . $e->getMessage();
                 return $keys;
             }
         }
@@ -675,7 +675,7 @@ if (! trait_exists('CacheAPCU')) {
 
             // If APCu is not enabled, return empty array
             if (! function_exists('apcu_enabled') || ! apcu_enabled()) {
-                return [ ];
+                return [];
             }
 
             // try to get our keys
@@ -683,7 +683,7 @@ if (! trait_exists('CacheAPCU')) {
                 // setup the config and prefix
                 $config = CacheConfig::get('apcu');
                 $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
-                $our_keys = [ ];
+                $our_keys = [];
 
                 // check if we have cache info function
                 if (function_exists('apcu_cache_info')) {
@@ -700,7 +700,7 @@ if (! trait_exists('CacheAPCU')) {
                             // check if it starts with our prefix
                             if (strpos($key, $prefix) === 0) {
                                 // add to our keys array
-                                $our_keys[ ] = [
+                                $our_keys[] = [
                                     'key' => substr($key, strlen($prefix)),
                                     'full_key' => $key,
                                     'creation_time' => $entry['creation_time'] ?? 0,
@@ -717,9 +717,9 @@ if (! trait_exists('CacheAPCU')) {
                 // return our keys
                 return $our_keys;
 
-            // whoopsie... return empty array
+                // whoopsie... return empty array
             } catch (\Exception $e) {
-                return [ ];
+                return [];
             }
         }
 
