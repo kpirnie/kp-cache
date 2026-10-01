@@ -62,8 +62,6 @@ if (! trait_exists('\KPT\CacheMixedAsync')) {
                             [self::TIER_MEMCACHED, 'set'] => self::setToMemcachedAsync($key, $op['data'], $op['ttl'] ?? 3600),
                             [self::TIER_FILE, 'get'] => self::getFromFileAsync($key),
                             [self::TIER_FILE, 'set'] => self::setToFileAsync($key, $op['data'], $op['ttl'] ?? 3600),
-                            [self::TIER_MMAP, 'get'] => self::getFromMmapAsync($key),
-                            [self::TIER_MMAP, 'set'] => self::setToMmapAsync($key, $op['data'], $op['ttl'] ?? 3600),
                             [self::TIER_OPCACHE, 'get'] => self::getFromOPcacheAsync($key),
                             [self::TIER_OPCACHE, 'set'] => self::setToOPcacheAsync($key, $op['data'], $op['ttl'] ?? 3600),
                             default => CachePromise::reject(new \RuntimeException("Unsupported async operation: {$tier}:{$method}"))
@@ -131,8 +129,6 @@ if (! trait_exists('\KPT\CacheMixedAsync')) {
                 [self::TIER_MEMCACHED, 'set'] => self::setToMemcached($key, $op['data'], $op['ttl'] ?? 3600),
                 [self::TIER_FILE, 'get'] => self::getFromFile($key),
                 [self::TIER_FILE, 'set'] => self::setToFile($key, $op['data'], $op['ttl'] ?? 3600),
-                [self::TIER_MMAP, 'get'] => self::getFromMmap($key),
-                [self::TIER_MMAP, 'set'] => self::setToMmap($key, $op['data'], $op['ttl'] ?? 3600),
                 [self::TIER_OPCACHE, 'get'] => self::getFromOPcache($key),
                 [self::TIER_OPCACHE, 'set'] => self::setToOPcache($key, $op['data'], $op['ttl'] ?? 3600),
                 default => false
@@ -176,7 +172,6 @@ if (! trait_exists('\KPT\CacheMixedAsync')) {
                             $promise = match ($tier) {
                                 self::TIER_MEMCACHED => self::setToMemcachedAsync($key, $data, $ttl),
                                 self::TIER_FILE => self::setToFileAsync($key, $data, $ttl),
-                                self::TIER_MMAP => self::setToMmapAsync($key, $data, $ttl),
                                 self::TIER_OPCACHE => self::setToOPcacheAsync($key, $data, $ttl),
                                 default => CachePromise::resolve(false)
                             };

@@ -1099,6 +1099,40 @@ if (! trait_exists('\KPT\CacheAsync')) {
         }
 
         /**
+         * Tier preference operation
+         *
+         * Attempts to retrieve data from a preferred tier first, with optional
+         * fallback to the standard tier hierarchy.
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param string $key The cache key to retrieve
+         * @param string $preferred_tier The preferred tier to try first
+         * @param bool $fallback_on_failure Whether to fallback on failure
+         * @return mixed Returns the cached data or false if not found
+         */
+        private static function getWithTierPreference(string $key, string $preferred_tier, bool $fallback_on_failure = true): mixed
+        {
+
+            // with fallback, the tier getter already falls back to the hierarchy
+            if ($fallback_on_failure) {
+                return self::getFromTier($key, $preferred_tier);
+            }
+
+            // make sure we're initialized
+            self::ensureInitialized();
+
+            // without fallback, only the preferred tier counts
+            if (! CacheTierManager::isTierValid($preferred_tier) || ! CacheTierManager::isTierAvailable($preferred_tier)) {
+                return false;
+            }
+
+            // return the item from the preferred tier only
+            return self::getFromTierInternal($key, $preferred_tier);
+        }
+
+        /**
          * Asynchronous pipeline operations for better performance
          *
          * Executes a series of cache operations in a pipeline for improved

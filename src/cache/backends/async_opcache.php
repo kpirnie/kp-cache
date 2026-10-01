@@ -155,7 +155,7 @@ if (! trait_exists('\KPT\CacheOPCacheAsync')) {
                         // try to cleanup OPCache files
                         try {
                             // cleanup OPCache files and resolve
-                            $result = self::cleanupOPcacheFiles();
+                            $result = self::cleanupOPcache();
                             $resolve($result);
 
                             // whoopsie... reject the promise with the error
@@ -169,7 +169,7 @@ if (! trait_exists('\KPT\CacheOPCacheAsync')) {
                     // try to cleanup OPCache files synchronously
                     try {
                         // cleanup OPCache files and resolve
-                        $result = self::cleanupOPcacheFiles();
+                        $result = self::cleanupOPcache();
                         $resolve($result);
 
                         // whoopsie... reject the promise with the error
