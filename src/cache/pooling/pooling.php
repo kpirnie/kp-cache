@@ -165,10 +165,13 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
 
             // Try to get an active connection first
             foreach ($pool['active'] as $id => $conn_data) {
-                // if the connection is healthy
-                if (self::isConnectionHealthy($backend, $conn_data['connection'])) {
+                // if the connection is recent or still healthy
+                if (! self::needsHealthCheck($conn_data) || self::isConnectionHealthy(
+                    $backend,
+                    $conn_data['connection']
+                )) {
                     // update the last used time
-                    $conn_data['last_used'] = time();
+                    $pool['active'][$id]['last_used'] = time();
 
                     // debug logging
                     Logger::debug('Cache Connection Pool', [$conn_data['connection']]);
@@ -192,8 +195,11 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
                 // get a connection from the idle pool
                 $conn_data = array_pop($pool['idle']);
 
-                // if the connection is healthy
-                if (self::isConnectionHealthy($backend, $conn_data['connection'])) {
+                // if the connection is recent or still healthy
+                if (! self::needsHealthCheck($conn_data) || self::isConnectionHealthy(
+                    $backend,
+                    $conn_data['connection']
+                )) {
                     // generate a unique id
                     $id = uniqid();
 
@@ -247,6 +253,22 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
 
             // no connection available
             return null;
+        }
+
+        /**
+         * Check if a pooled connection has sat idle long enough to need a health check
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param array $conn_data The pooled connection data
+         * @return bool Returns true if the connection should be checked
+         */
+        private static function needsHealthCheck(array $conn_data): bool
+        {
+
+            // only check connections that have been idle for a while
+            return (time() - ($conn_data['last_used'] ?? 0)) > 30;
         }
 
         /**
@@ -441,25 +463,6 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
                 'config' => self::$pool_configs[$backend] ?? [],
                 'stats' => ['total_created' => 0, 'total_reused' => 0]
             ];
-
-            // Pre-create minimum connections
-            $min_connections = self::$pools[$backend]['config']['min_connections'] ?? 1;
-
-            // create the minimum connections
-            for ($i = 0; $i < $min_connections; $i++) {
-                // try to create a connection
-                $connection = self::createConnection($backend);
-
-                // if we got a connection
-                if ($connection) {
-                    // add to idle pool
-                    self::$pools[$backend]['idle'][] = [
-                        'connection' => $connection,
-                        'created' => time(),
-                        'last_used' => time()
-                    ];
-                }
-            }
         }
 
         /**
