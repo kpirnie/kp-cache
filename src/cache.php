@@ -585,7 +585,7 @@ if (! class_exists('\KPT\Cache', false)) {
             self::ensureInitialized();
 
             // if there's no data, then there's nothing to do here... just return
-            if (empty($data)) {
+            if ($data === null || $data === false) {
                 Logger::error("Attempted to cache empty data", ['key' => $key]);
                 return false;
             }
@@ -865,7 +865,7 @@ if (! class_exists('\KPT\Cache', false)) {
             }
 
             // if we have no data
-            if (empty($data)) {
+            if ($data === null || $data === false) {
                 Logger::warning("Attempted to cache empty data", ['tier' => $tier, 'key' => $key]);
                 return false;
             }
@@ -955,7 +955,7 @@ if (! class_exists('\KPT\Cache', false)) {
             self::ensureInitialized();
 
             // if we have no data, return an empty array
-            if (empty($data)) {
+            if ($data === null || $data === false) {
                 Logger::warning("Attempted to cache empty data to multiple tiers", ['tiers' => $tiers, 'key' => $key]);
                 return [];
             }
