@@ -38,6 +38,54 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
         /** @var bool SQLite cache table initialized flag */
         private static bool $_sqlite_table_initialized = false;
 
+        // prepared statements and resolved table name for the open connection
+        private static array $_sqlite_stmts = [];
+        private static ?string $_sqlite_table = null;
+
+        /**
+         * Get the validated SQLite cache table name
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return string Returns the table name
+         * @throws \InvalidArgumentException When the configured name isn't a plain identifier
+         */
+        private static function getSQLiteTable(): string
+        {
+
+            // resolve once
+            if (self::$_sqlite_table !== null) {
+                return self::$_sqlite_table;
+            }
+
+            // get and validate the configured name
+            $table_name = CacheConfig::get('sqlite')['table_name'] ?? 'kpt_cache';
+            if (! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $table_name)) {
+                throw new \InvalidArgumentException("Invalid SQLite table name: {$table_name}");
+            }
+
+            // hold and return it
+            return self::$_sqlite_table = $table_name;
+        }
+
+        /**
+         * Get a cached prepared statement for the open connection
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param \PDO $db The open connection
+         * @param string $sql The sql to prepare
+         * @return \PDOStatement Returns the prepared statement
+         */
+        private static function sqliteStatement(\PDO $db, string $sql): \PDOStatement
+        {
+
+            // prepare once per sql string
+            return self::$_sqlite_stmts[$sql] ??= $db->prepare($sql);
+        }
+
         /**
          * Get SQLite database instance
          *
@@ -152,13 +200,13 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
             try {
                 // get sqlite configuration
                 $config = CacheConfig::get('sqlite');
-                $table_name = $config['table_name'] ?? 'kpt_cache';
+                $table_name = self::getSQLiteTable();
 
                 // create cache table SQL
                 $create_sql = "
                     CREATE TABLE IF NOT EXISTS `{$table_name}` (
                         `cache_key` TEXT PRIMARY KEY NOT NULL,
-                        `cache_value` TEXT NOT NULL,
+                        `cache_value` BLOB NOT NULL,
                         `expires_at` INTEGER NULL,
                         `created_at` INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                         `updated_at` INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
@@ -227,7 +275,7 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
             try {
                 // get sqlite configuration
                 $config = CacheConfig::get('sqlite');
-                $table_name = $config['table_name'] ?? 'kpt_cache';
+                $table_name = self::getSQLiteTable();
 
                 // setup the query sql
                 $sql = "
@@ -238,9 +286,10 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
                 ";
 
                 // prepare and execute the query
-                $stmt = $db->prepare($sql);
+                $stmt = self::sqliteStatement($db, $sql);
                 $stmt->execute([$key]);
                 $result = $stmt->fetch();
+                $stmt->closeCursor();
 
                 // check if we have a result and cache value
                 if ($result && $result->cache_value) {
@@ -288,7 +337,7 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
             try {
                 // get sqlite configuration
                 $config = CacheConfig::get('sqlite');
-                $table_name = $config['table_name'] ?? 'kpt_cache';
+                $table_name = self::getSQLiteTable();
 
                 // serialize the data
                 $serialized_data = serialize($data);
@@ -303,9 +352,12 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
                     VALUES (?, ?, ?)
                 ";
 
-                // prepare and execute the query
-                $stmt = $db->prepare($sql);
-                $result = $stmt->execute([$key, $serialized_data, $expires_at]);
+                // prepare and execute the query, binding the value as binary
+                $stmt = self::sqliteStatement($db, $sql);
+                $stmt->bindValue(1, $key, \PDO::PARAM_STR);
+                $stmt->bindValue(2, $serialized_data, \PDO::PARAM_LOB);
+                $stmt->bindValue(3, $expires_at, $expires_at === null ? \PDO::PARAM_NULL : \PDO::PARAM_INT);
+                $result = $stmt->execute();
 
                 // return success status
                 return $result !== false;
@@ -341,7 +393,7 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
             try {
                 // get sqlite configuration
                 $config = CacheConfig::get('sqlite');
-                $table_name = $config['table_name'] ?? 'kpt_cache';
+                $table_name = self::getSQLiteTable();
 
                 // setup the delete sql
                 $sql = "DELETE FROM `{$table_name}` WHERE cache_key = ?";
@@ -350,7 +402,7 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
                 Logger::debug('Delete from SQLite cache', ['key' => $key]);
 
                 // prepare and execute the delete query
-                $stmt = $db->prepare($sql);
+                $stmt = self::sqliteStatement($db, $sql);
                 $result = $stmt->execute([$key]);
 
                 // return success status
@@ -387,7 +439,7 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
             try {
                 // get sqlite configuration
                 $config = CacheConfig::get('sqlite');
-                $table_name = $config['table_name'] ?? 'kpt_cache';
+                $table_name = self::getSQLiteTable();
 
                 // setup the delete sql
                 $sql = "DELETE FROM `{$table_name}`";
@@ -397,9 +449,6 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
 
                 // execute the delete query
                 $result = $db->exec($sql);
-
-                // vacuum to reclaim space
-                $db->exec('VACUUM');
 
                 // return success status
                 return $result !== false;
@@ -436,7 +485,7 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
             try {
                 // get sqlite configuration
                 $config = CacheConfig::get('sqlite');
-                $table_name = $config['table_name'] ?? 'kpt_cache';
+                $table_name = self::getSQLiteTable();
 
                 // setup the cleanup sql
                 $sql = "DELETE FROM `{$table_name}` WHERE expires_at IS NOT NULL AND expires_at <= strftime('%s', 'now')";
@@ -540,7 +589,7 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
 
                 // get sqlite configuration
                 $config = CacheConfig::get('sqlite');
-                $table_name = $config['table_name'] ?? 'kpt_cache';
+                $table_name = self::getSQLiteTable();
                 $db_path = $config['db_path'] ?? self::getSQLiteDefaultPath();
 
                 // set the database path
@@ -620,8 +669,10 @@ if (! trait_exists('\KPT\CacheSQLite', false)) {
                     self::$_sqlite_db = null;
                 }
 
-                // reset the table initialized flag
+                // reset the table initialized flag and cached statements
                 self::$_sqlite_table_initialized = false;
+                self::$_sqlite_stmts = [];
+                self::$_sqlite_table = null;
 
                 // whoopsie... ignore close errors
             } catch (\Exception $e) {
