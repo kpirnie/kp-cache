@@ -32,7 +32,7 @@ if (! trait_exists('CacheArray')) {
     trait CacheArray
     {
         // trait properties
-        private static array $_array_cache = [ ];
+        private static array $_array_cache = [];
         private static int $_array_max_items = 1024;
         private static int $_array_hits = 0;
         private static int $_array_misses = 0;
@@ -115,9 +115,9 @@ if (! trait_exists('CacheArray')) {
                 self::$_array_sets++;
                 return true;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "Array cache set error: " . $e -> getMessage();
+                self::$_last_error = "Array cache set error: " . $e->getMessage();
                 return false;
             }
         }
@@ -147,9 +147,9 @@ if (! trait_exists('CacheArray')) {
                 // return success
                 return true;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "Array cache delete error: " . $e -> getMessage();
+                self::$_last_error = "Array cache delete error: " . $e->getMessage();
                 return false;
             }
         }
@@ -170,7 +170,7 @@ if (! trait_exists('CacheArray')) {
             // try to clear the cache
             try {
                 // clear the cache and reset stats
-                self::$_array_cache = [ ];
+                self::$_array_cache = [];
                 self::$_array_hits = 0;
                 self::$_array_misses = 0;
                 self::$_array_sets = 0;
@@ -179,9 +179,9 @@ if (! trait_exists('CacheArray')) {
                 // return success
                 return true;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "Array cache clear error: " . $e -> getMessage();
+                self::$_last_error = "Array cache clear error: " . $e->getMessage();
                 return false;
             }
         }
@@ -218,7 +218,7 @@ if (! trait_exists('CacheArray')) {
 
             // calculate hit rate
             $total_requests = self::$_array_hits + self::$_array_misses;
-            $hit_rate = $total_requests > 0 ? round(( self::$_array_hits / $total_requests ) * 100, 2) : 0;
+            $hit_rate = $total_requests > 0 ? round((self::$_array_hits / $total_requests) * 100, 2) : 0;
 
             // return the stats array
             return [
@@ -233,7 +233,7 @@ if (! trait_exists('CacheArray')) {
                 'cache_deletes' => self::$_array_deletes,
                 'hit_rate_percent' => $hit_rate,
                 'expired_items' => $expired_count,
-                'utilization_percent' => round(( count(self::$_array_cache) / self::$_array_max_items ) * 100, 2)
+                'utilization_percent' => round((count(self::$_array_cache) / self::$_array_max_items) * 100, 2)
             ];
         }
 
@@ -271,9 +271,9 @@ if (! trait_exists('CacheArray')) {
                 // verify data integrity
                 return $retrieved === $test_value;
 
-            // whoopsie... setup the error and return false
+                // whoopsie... setup the error and return false
             } catch (\Exception $e) {
-                self::$_last_error = "Array cache test failed: " . $e -> getMessage();
+                self::$_last_error = "Array cache test failed: " . $e->getMessage();
                 return false;
             }
         }
@@ -325,7 +325,7 @@ if (! trait_exists('CacheArray')) {
         {
 
             // first try to remove expired items
-            $expired_removed = self::cleanupArrayExpired();
+            $expired_removed = self::cleanupArray();
 
             // if we removed enough expired items, we're done
             if ($expired_removed >= $count) {
@@ -392,7 +392,7 @@ if (! trait_exists('CacheArray')) {
         {
 
             // setup the contents array and current time
-            $contents = [ ];
+            $contents = [];
             $current_time = time();
 
             // loop through each cached item
@@ -402,7 +402,7 @@ if (! trait_exists('CacheArray')) {
                     'key' => $key,
                     'created' => $item['created'],
                     'expires' => $item['expires'],
-                    'is_expired' => ( $item['expires'] > 0 && $item['expires'] <= $current_time ),
+                    'is_expired' => ($item['expires'] > 0 && $item['expires'] <= $current_time),
                     'size_bytes' => strlen(serialize($item['data'])),
                     'ttl_remaining' => $item['expires'] > 0 ? max(0, $item['expires'] - $current_time) : -1
                 ];
@@ -413,7 +413,7 @@ if (! trait_exists('CacheArray')) {
                 }
 
                 // add to contents array
-                $contents[ ] = $entry;
+                $contents[] = $entry;
             }
 
             // return the contents
