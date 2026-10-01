@@ -51,7 +51,7 @@ if (! trait_exists('\KPT\CacheMemcached', false)) {
 
                 // create new memcached instance
                 $memcached = new \Memcached();
-                $memcached -> addServer($config['host'], $config['port']);
+                $memcached->addServer($config['host'], $config['port']);
                 CacheConnectionPool::applyMemcachedAuth($memcached, $config);
 
                 // Set basic options for testing
@@ -154,7 +154,7 @@ if (! trait_exists('\KPT\CacheMemcached', false)) {
                     $memcached->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
                     $memcached->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
                     $memcached->setOption(\Memcached::OPT_CONNECT_TIMEOUT, ($config['connection_timeout'] ?? 5) * 1000);
-                    $memcached -> setOption(\Memcached::OPT_POLL_TIMEOUT, 1000);
+                    $memcached->setOption(\Memcached::OPT_POLL_TIMEOUT, 1000);
                     CacheConnectionPool::applyMemcachedAuth($memcached, $config);
 
                     // Test connection
@@ -204,10 +204,10 @@ if (! trait_exists('\KPT\CacheMemcached', false)) {
             $ns_key = $prefix . '__ns';
 
             // get the current version, creating it if it isn't there
-            $version = $connection -> get($ns_key);
+            $version = $connection->get($ns_key);
             if ($version === false) {
-                $connection -> add($ns_key, 1, 0);
-                $version = $connection -> get($ns_key) ?: 1;
+                $connection->add($ns_key, 1, 0);
+                $version = $connection->get($ns_key) ?: 1;
             }
 
             // return the versioned prefix
@@ -464,7 +464,7 @@ if (! trait_exists('\KPT\CacheMemcached', false)) {
 
                 // setup config and prefix
                 $config = CacheConfig::get('memcached');
-                $prefix = self::getMemcachedPrefix($connection)
+                $prefix = self::getMemcachedPrefix($connection);
 
                 // Prefix all keys
                 $prefixed_keys = array_map(function ($key) use ($prefix) {
@@ -537,7 +537,7 @@ if (! trait_exists('\KPT\CacheMemcached', false)) {
 
                 // setup config and prefix
                 $config = CacheConfig::get('memcached');
-                $prefix = self::getMemcachedPrefix($connection)
+                $prefix = self::getMemcachedPrefix($connection);
 
                 // Prefix all keys
                 $prefixed_items = [];
@@ -1129,20 +1129,20 @@ if (! trait_exists('\KPT\CacheMemcached', false)) {
 
                 // bump the namespace version
                 $config = CacheConfig::get('memcached');
-                $ns_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . '__ns';
-                if ($connection -> increment($ns_key) === false) {
-                    return $connection -> set($ns_key, 2, 0);
+                $ns_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . '__ns';
+                if ($connection->increment($ns_key) === false) {
+                    return $connection->set($ns_key, 2, 0);
                 }
 
                 // cleared
                 return true;
 
-            // whoopsie... handle errors
+                // whoopsie... handle errors
             } catch (\Throwable $e) {
-                self::$_last_error = $e -> getMessage();
+                self::$_last_error = $e->getMessage();
                 return false;
 
-            // always return connection to pool if using pooling
+                // always return connection to pool if using pooling
             } finally {
                 if ($use_pool && $connection) {
                     CacheConnectionPool::returnConnection('memcached', $connection);
