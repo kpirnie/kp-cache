@@ -76,6 +76,7 @@ if (! class_exists('\KPT\Cache')) {
         private static ?object $_event_loop = null;
         private static ?string $_last_error = null;
         private static bool $_file_path_private = false;
+        private static int $_promotion_ttl = 60;
 
         /**
          * Initialize the cache system
@@ -316,6 +317,22 @@ if (! class_exists('\KPT\Cache')) {
 
             // debug logging
             Logger::debug('Cache Connection Pool Initialized');
+        }
+
+        /**
+         * Set the TTL used when promoting items to higher tiers
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param int $ttl Time to live in seconds for promoted copies
+         * @return void Returns nothing
+         */
+        public static function setPromotionTtl(int $ttl): void
+        {
+
+            // keep it at least a second
+            self::$_promotion_ttl = max(1, $ttl);
         }
 
         /**
@@ -1736,8 +1753,9 @@ if (! class_exists('\KPT\Cache')) {
 
             // Promote to all higher tiers (lower index = higher priority)
             for ($i = 0; $i < $current_index; $i++) {
+
                 // try to set the item to the higher priority tier
-                $promote_success = self::setToTierInternal($key, $data, 3600, $available_tiers[$i]);
+                $promote_success = self::setToTierInternal($key, $data, self::$_promotion_ttl, $available_tiers[$i]);
 
                 // if it was successful
                 if ($promote_success) {
