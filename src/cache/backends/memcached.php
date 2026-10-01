@@ -28,7 +28,7 @@ if (! trait_exists('CacheMemcached')) {
     trait CacheMemcached
     {
         // Keep direct connection for non-pooled usage
-        private static ?Memcached $_memcached = null;
+        private static ?\Memcached $_memcached = null;
 
         /**
          * Test Memcached connection
@@ -97,7 +97,7 @@ if (! trait_exists('CacheMemcached')) {
          *
          * @return Memcached|null Returns Memcached connection or null on failure
          */
-        private static function getMemcached(): ?Memcached
+        private static function getMemcached(): ?\Memcached
         {
 
             // Try connection pool first
@@ -129,7 +129,7 @@ if (! trait_exists('CacheMemcached')) {
          *
          * @return Memcached|null Returns Memcached connection or null on failure
          */
-        private static function createDirectMemcachedConnection(): ?Memcached
+        private static function createDirectMemcachedConnection(): ?\Memcached
         {
 
             // get configuration and setup retry logic
