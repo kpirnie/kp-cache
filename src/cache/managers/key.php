@@ -355,39 +355,14 @@ if (! class_exists('\KPT\CacheKeyManager')) {
                 return $key; // Tier allows all characters
             }
 
-            // Replace forbidden characters with safe alternatives
-            $replacements = [
-                '/' => '_slash_',
-                '\\' => '_bslash_',
-                ':' => '_colon_',
-                '*' => '_star_',
-                '?' => '_question_',
-                '"' => '_quote_',
-                '<' => '_lt_',
-                '>' => '_gt_',
-                '|' => '_pipe_',
-                ' ' => '_space_',
-                "\t" => '_tab_',
-                "\r" => '_cr_',
-                "\n" => '_nl_',
-                "\0" => '_null_'
-            ];
-
-            // start with the original key
-            $sanitized = $key;
-
-            // replace forbidden characters
+            // percent-encode the escape char and every forbidden char so no two keys can collide
+            $replacements = ['%' => '%25'];
             foreach ($forbidden_chars as $char) {
-                if (isset($replacements[$char])) {
-                    $sanitized = str_replace($char, $replacements[$char], $sanitized);
-                } else {
-                    // Remove character if no replacement defined
-                    $sanitized = str_replace($char, '', $sanitized);
-                }
+                $replacements[$char] = sprintf('%%%02X', ord($char));
             }
 
             // return the sanitized key
-            return $sanitized;
+            return strtr($key, $replacements);
         }
 
         /**
@@ -412,12 +387,6 @@ if (! class_exists('\KPT\CacheKeyManager')) {
             // if key is within limits, return as-is
             if (strlen($key) <= $max_length) {
                 return $key;
-            }
-
-            // if auto-hashing is disabled, truncate
-            if (! self::$_auto_hash_long_keys) {
-                // Truncate if auto-hashing is disabled
-                return substr($key, 0, $max_length);
             }
 
             // Use hashing to shorten while preserving uniqueness
