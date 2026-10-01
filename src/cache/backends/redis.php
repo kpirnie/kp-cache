@@ -747,7 +747,7 @@ if (! trait_exists('CacheRedis')) {
                     // whoopsie...
                 } catch (\Exception $e) {
                     // log the error and return false
-                    Logger::error("Redis clear error: " . $e->getMessage(), 'redis_operation');
+                    Logger::error("Redis clear error", ['error' => $e->getMessage()]);
                     return false;
                 }
             }

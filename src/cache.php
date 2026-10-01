@@ -922,7 +922,7 @@ if (! class_exists('Cache')) {
 
             // is the tier available
             if (! CacheTierManager::isTierAvailable($tier)) {
-                Logger::error("Tier not available", 'tier_availability', ['tier' => $tier, 'key' => $key]);
+                Logger::error("Tier not available", ['tier' => $tier, 'key' => $key]);
                 return false;
             }
 
