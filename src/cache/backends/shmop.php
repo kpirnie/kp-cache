@@ -279,26 +279,6 @@ if (! trait_exists('\KPT\CacheSHMOP')) {
                 }
             }
 
-            // Method 2: Try to clear segments based on prefix pattern
-            // This attempts to clear any segments that might exist but aren't tracked
-            $config = CacheConfig::get('shmop');
-            $base_key = $config['base_key'] ?? 0x12345000;
-
-            // Try to clear a reasonable range of possible keys
-            for ($i = 0; $i < 1000; $i++) {
-                $test_key = $base_key + $i;
-
-                // Skip keys we already processed in the tracking loop
-                if (! in_array($test_key, self::$_shmop_segments)) {
-                    $segment = @shmop_open($test_key, 'w', 0, 0);
-                    if ($segment !== false) {
-                        @shmop_delete($segment);
-                        @shmop_close($segment);
-                        Logger::debug("Cleaned up untracked SHMOP segment", ['shmop_key' => $test_key]);
-                    }
-                }
-            }
-
             // Clear the tracking array
             self::$_shmop_segments = [];
 

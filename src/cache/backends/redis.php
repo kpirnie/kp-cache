@@ -698,14 +698,15 @@ if (! trait_exists('\KPT\CacheRedis')) {
         }
 
         /**
-         * Clear all items from redis cache
+         * Clear this application's keys from Redis
          *
-         * Empties the entire redis cache.
+         * Scans for keys under our prefix and unlinks them in batches,
+         * leaving every other application's data in the database alone.
          *
          * @since 8.4
          * @author Kevin Pirnie <me@kpirnie.com>
          *
-         * @return bool Returns true on success, false on failure
+         * @return bool Returns true if cleared successfully
          */
         public static function clearRedis(): bool
         {
@@ -717,9 +718,14 @@ if (! trait_exists('\KPT\CacheRedis')) {
 
                 // if we have a connection
                 if ($connection) {
-                    // try to flush the db
+                    // try to clear our keys
                     try {
-                        return $connection->flushDB();
+                        return self::clearRedisKeys($connection);
+
+                        // whoopsie...
+                    } catch (\Throwable $e) {
+                        Logger::error("Redis clear error", ['error' => $e->getMessage()]);
+                        return false;
 
                         // finally... return the connection
                     } finally {
@@ -727,32 +733,68 @@ if (! trait_exists('\KPT\CacheRedis')) {
                     }
                 }
 
-                // otherwise
-            } else {
-                // try to flush the redis db directly
-                try {
-                    // create a redis connection
-                    $redis = new \Redis();
-                    $config = CacheConfig::get('redis');
-
-                    // connect to redis
-                    $redis->pconnect($config['host'], $config['port']);
-
-                    // select the database
-                    $redis->select($config['database']);
-
-                    // return flushing the db
-                    return $redis->flushDB();
-
-                    // whoopsie...
-                } catch (\Exception $e) {
-                    // log the error and return false
-                    Logger::error("Redis clear error", ['error' => $e->getMessage()]);
-                    return false;
-                }
+                // no connection
+                return false;
             }
 
-            // default return
+            // otherwise try to clear directly
+            try {
+                // get the direct connection
+                $redis = self::getRedis();
+                if (! $redis) {
+                    return false;
+                }
+
+                // clear our keys
+                return self::clearRedisKeys($redis);
+
+                // whoopsie...
+            } catch (\Throwable $e) {
+                // log the error and return false
+                Logger::error("Redis clear error", ['error' => $e->getMessage()]);
+                return false;
+            }
+        }
+
+        /**
+         * Scan and unlink every key under our prefix
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param \Redis $redis The connection to clear through
+         * @return bool Returns true if cleared successfully
+         */
+        private static function clearRedisKeys(\Redis $redis): bool
+        {
+
+            // get our prefix
+            $config = CacheConfig::get('redis');
+            $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+
+            // never clear without a prefix, it would match everyone's keys
+            if ($prefix === '') {
+                self::$_last_error = "Redis clear refused: empty prefix";
+                Logger::error("Redis clear refused, prefix is empty");
+                return false;
+            }
+
+            // the connection prefix is applied on write but not to scan patterns
+            $opt_prefix = (string) $redis->getOption(\Redis::OPT_PREFIX);
+            $pattern = addcslashes($opt_prefix . $prefix, '*?[]\\') . '*';
+
+            // scan in batches and unlink what we find
+            $iterator = null;
+            do {
+                $keys = $redis->scan($iterator, $pattern, 1000);
+                if (! empty($keys)) {
+                    // strip the connection prefix since unlink adds it back
+                    $keys = array_map(fn($k) => substr($k, strlen($opt_prefix)), $keys);
+                    $redis->unlink($keys);
+                }
+            } while ($iterator > 0);
+
+            // done
             return true;
         }
 

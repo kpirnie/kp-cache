@@ -204,40 +204,18 @@ if (! trait_exists('\KPT\CacheAPCU')) {
                 $config = CacheConfig::get('apcu');
                 $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
 
-                // Get cache info to iterate through keys
-                if (function_exists('apcu_cache_info')) {
-                    // get the cache info
-                    $cache_info = apcu_cache_info();
-
-                    // check if we have a cache list
-                    if (isset($cache_info['cache_list'])) {
-                        // setup the deleted counter
-                        $deleted = 0;
-
-                        // loop through each entry
-                        foreach ($cache_info['cache_list'] as $entry) {
-                            // get the key
-                            $key = $entry['info'] ?? $entry['key'] ?? '';
-
-                            // Only delete keys with our prefix
-                            if (strpos($key, $prefix) === 0) {
-                                // delete the key and increment the counter
-                                if (apcu_delete($key)) {
-                                    $deleted++;
-                                }
-                            }
-                        }
-
-                        // return if we deleted anything
-                        return $deleted > 0;
-                    }
+                // never clear without a prefix, it would match everyone's keys
+                if ($prefix === '') {
+                    self::$_last_error = "APCu clear refused: empty prefix";
+                    return false;
                 }
 
-                // Fallback to clearing entire cache if we can't filter by prefix
-                return function_exists('apcu_clear_cache') ? apcu_clear_cache() : false;
+                // delete only keys under our prefix
+                apcu_delete(new \APCUIterator('/^' . preg_quote($prefix, '/') . '/', APC_ITER_KEY));
+                return true;
 
                 // whoopsie... setup the error and return false
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 self::$_last_error = "APCu clear error: " . $e->getMessage();
                 return false;
             }

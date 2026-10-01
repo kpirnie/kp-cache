@@ -27,6 +27,37 @@ if (! trait_exists('\KPT\CacheYAC')) {
      */
     trait CacheYAC
     {
+
+        /**
+         * Get the versioned key prefix for YAC
+         *
+         * YAC can't list keys, so clearing bumps a namespace version
+         * that is built into every key, orphaning the old entries.
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return string Returns the prefix including the namespace version
+         */
+        private static function getYacPrefix(): string
+        {
+
+            // get our base prefix and namespace key
+            $config = CacheConfig::get('yac');
+            $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+            $ns_key = $prefix . '__ns';
+
+            // get the current version, creating it if it isn't there
+            $version = yac_get($ns_key);
+            if ($version === false) {
+                yac_add($ns_key, 1, 0);
+                $version = yac_get($ns_key) ?: 1;
+            }
+
+            // return the versioned prefix
+            return $prefix . 'v' . (int) $version . ':';
+        }
+
         /**
          * Test if YAC cache is actually working
          *
@@ -45,7 +76,7 @@ if (! trait_exists('\KPT\CacheYAC')) {
             try {
                 // get yac configuration
                 $config = CacheConfig::get('yac');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                $prefix = self::getYacPrefix();
 
                 // Test with a simple store/fetch operation
                 $test_key = $prefix . 'test_' . uniqid();
@@ -97,7 +128,7 @@ if (! trait_exists('\KPT\CacheYAC')) {
             try {
                 // get yac configuration
                 $config = CacheConfig::get('yac');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                $prefix = self::getYacPrefix();
 
                 // Setup the prefixed key
                 $prefixed_key = $prefix . $key;
@@ -143,7 +174,7 @@ if (! trait_exists('\KPT\CacheYAC')) {
             try {
                 // get yac configuration
                 $config = CacheConfig::get('yac');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                $prefix = self::getYacPrefix();
 
                 // setup prefixed key and store the item
                 $prefixed_key = $prefix . $key;
@@ -180,7 +211,7 @@ if (! trait_exists('\KPT\CacheYAC')) {
             try {
                 // get yac configuration
                 $config = CacheConfig::get('yac');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                $prefix = self::getYacPrefix();
 
                 // setup prefixed key
                 $prefixed_key = $prefix . $key;
@@ -203,34 +234,39 @@ if (! trait_exists('\KPT\CacheYAC')) {
         }
 
         /**
-         * Clear all items from YAC cache
+         * Clear this application's keys from YAC
          *
-         * Flushes all cached items from YAC shared memory cache.
-         * This operation affects all cached data in the YAC instance.
+         * Bumps the namespace version so every existing key becomes
+         * unreachable, leaving other applications' data alone.
          *
          * @since 8.4
          * @author Kevin Pirnie <me@kpirnie.com>
          *
-         * @return bool Returns true if successful, false otherwise
+         * @return bool Returns true if cleared successfully
          */
         public static function clearYac(): bool
         {
 
-            // check if yac extension is loaded and flush if available
+            // check if yac extension is loaded
             if (! extension_loaded('yac')) {
                 return false;
             }
 
-            // try to flush all yac cache
+            // try to bump the namespace version
             try {
                 // debug logging
                 Logger::debug('Clearing YAC cache');
 
-                // return flushing the cache
-                return yac_flush();
+                // get the namespace key and current version
+                $config = CacheConfig::get('yac');
+                $ns_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . '__ns';
+                $version = (int) (yac_get($ns_key) ?: 1);
+
+                // return bumping the version
+                return yac_set($ns_key, $version + 1, 0);
 
                 // whoopsie... setup the error and return false
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 self::$_last_error = "YAC clear error: " . $e->getMessage();
                 Logger::error("YAC clear error", ['error' => $e->getMessage()]);
                 return false;

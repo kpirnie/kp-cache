@@ -180,6 +180,38 @@ if (! trait_exists('\KPT\CacheMemcached')) {
             return null;
         }
 
+
+        /**
+         * Get the versioned key prefix for Memcached
+         *
+         * Memcached can't list keys, so clearing bumps a namespace version
+         * that is built into every key, orphaning the old entries.
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param \Memcached $connection The connection to read the version through
+         * @return string Returns the prefix including the namespace version
+         */
+        private static function getMemcachedPrefix(\Memcached $connection): string
+        {
+
+            // get our base prefix and namespace key
+            $config = CacheConfig::get('memcached');
+            $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+            $ns_key = $prefix . '__ns';
+
+            // get the current version, creating it if it isn't there
+            $version = $connection -> get($ns_key);
+            if ($version === false) {
+                $connection -> add($ns_key, 1, 0);
+                $version = $connection -> get($ns_key) ?: 1;
+            }
+
+            // return the versioned prefix
+            return $prefix . 'v' . (int) $version . ':';
+        }
+
         /**
          * Check if Memcached connection is alive
          *
@@ -246,7 +278,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // get the result from memcached
                 $result = $connection->get($prefixed_key);
@@ -312,7 +344,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // set the item with expiration
                 return $connection->set($prefixed_key, $_data, time() + $_length);
@@ -368,7 +400,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // delete the item
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
                 $result = $connection->delete($prefixed_key);
 
                 // Consider it successful if key was deleted OR if key didn't exist
@@ -430,7 +462,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefix
                 $config = CacheConfig::get('memcached');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                $prefix = self::getMemcachedPrefix($connection)
 
                 // Prefix all keys
                 $prefixed_keys = array_map(function ($key) use ($prefix) {
@@ -503,7 +535,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefix
                 $config = CacheConfig::get('memcached');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                $prefix = self::getMemcachedPrefix($connection)
 
                 // Prefix all keys
                 $prefixed_items = [];
@@ -562,7 +594,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefix
                 $config = CacheConfig::get('memcached');
-                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                $prefix = self::getMemcachedPrefix($connection);
 
                 // Prefix all keys
                 $prefixed_keys = array_map(function ($key) use ($prefix) {
@@ -650,7 +682,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // increment the value atomically
                 return $connection->increment($prefixed_key, $offset, $initial_value, $expiry);
@@ -706,7 +738,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // decrement the value atomically
                 return $connection->decrement($prefixed_key, $offset, $initial_value, $expiry);
@@ -761,7 +793,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // add the item only if it doesn't exist
                 return $connection->add($prefixed_key, $_data, time() + $_length);
@@ -816,7 +848,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // replace the item only if it exists
                 return $connection->replace($prefixed_key, $_data, time() + $_length);
@@ -870,7 +902,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // append the data to existing item
                 return $connection->append($prefixed_key, $_data);
@@ -924,7 +956,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // prepend the data to existing item
                 return $connection->prepend($prefixed_key, $_data);
@@ -978,7 +1010,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // touch the item to update expiration
                 return $connection->touch($prefixed_key, time() + $_length);
@@ -1062,15 +1094,15 @@ if (! trait_exists('\KPT\CacheMemcached')) {
         }
 
         /**
-         * Clear Memcached cache (flush all)
+         * Clear this application's keys from Memcached
          *
-         * Flushes all items from the Memcached server,
-         * effectively clearing the entire cache.
+         * Bumps the namespace version so every existing key becomes
+         * unreachable, leaving other applications' data alone.
          *
          * @since 8.4
          * @author Kevin Pirnie <me@kpirnie.com>
          *
-         * @return bool Returns true if successful, false otherwise
+         * @return bool Returns true if cleared successfully
          */
         public static function clearMemcached(): bool
         {
@@ -1093,15 +1125,22 @@ if (! trait_exists('\KPT\CacheMemcached')) {
                     return false;
                 }
 
-                // flush all items from memcached
-                return $connection->flush();
+                // bump the namespace version
+                $config = CacheConfig::get('memcached');
+                $ns_key = ( $config['prefix'] ?? CacheConfig::getGlobalPrefix() ) . '__ns';
+                if ($connection -> increment($ns_key) === false) {
+                    return $connection -> set($ns_key, 2, 0);
+                }
 
-                // whoopsie... handle errors
-            } catch (\Exception $e) {
-                self::$_last_error = $e->getMessage();
+                // cleared
+                return true;
+
+            // whoopsie... handle errors
+            } catch (\Throwable $e) {
+                self::$_last_error = $e -> getMessage();
                 return false;
 
-                // always return connection to pool if using pooling
+            // always return connection to pool if using pooling
             } finally {
                 if ($use_pool && $connection) {
                     CacheConnectionPool::returnConnection('memcached', $connection);
@@ -1192,7 +1231,7 @@ if (! trait_exists('\KPT\CacheMemcached')) {
 
                 // setup config and prefixed key
                 $config = CacheConfig::get('memcached');
-                $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
+                $prefixed_key = self::getMemcachedPrefix($connection) . $_key;
 
                 // Try to get the key
                 $connection->get($prefixed_key);

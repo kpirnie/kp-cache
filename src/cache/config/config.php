@@ -35,7 +35,7 @@ if (! class_exists('\KPT\CacheConfig')) {
         // global config across all caching tiers
         private static array $global_config = [
             'path' => null,
-            'prefix' => '',
+            'prefix' => null, // null means derive the default per app
             'allowed_backends' => null, // null means all backends allowed
             'allowed_classes' => false, // classes allowed when unserializing, false for none
         ];
@@ -125,6 +125,11 @@ if (! class_exists('\KPT\CacheConfig')) {
             if (self::$global_config['path'] === null) {
                 // set to system temp directory
                 self::$global_config['path'] = sys_get_temp_dir() . '/kpt_cache/';
+            }
+
+            // Set default global prefix if not already set
+            if (self::$global_config['prefix'] === null) {
+                self::$global_config['prefix'] = self::getDefaultPrefix();
             }
 
             // debug logging
@@ -233,6 +238,39 @@ if (! class_exists('\KPT\CacheConfig')) {
         }
 
         /**
+         * Build the default global prefix for this application
+         *
+         * Uses a short hash of the composer root package name so each app
+         * gets its own key namespace, falling back to the process user id.
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return string Returns the default prefix
+         */
+        private static function getDefaultPrefix(): string
+        {
+
+            // try the composer root package name
+            $name = null;
+            if (class_exists('\Composer\InstalledVersions')) {
+                try {
+                    $name = \Composer\InstalledVersions::getRootPackage()['name'] ?? null;
+                } catch (\Throwable $e) {
+                    $name = null;
+                }
+            }
+
+            // composer names unnamed roots __root__, so fall back to the uid
+            if (empty($name) || $name === '__root__') {
+                $name = 'uid_' . (function_exists('posix_geteuid') ? posix_geteuid() : getmyuid());
+            }
+
+            // short hash keeps keys inside tight tier limits
+            return substr(hash('xxh3', $name), 0, 8) . ':';
+        }
+
+        /**
          * Reset global settings only
          *
          * Resets only the global configuration settings to their defaults
@@ -249,7 +287,7 @@ if (! class_exists('\KPT\CacheConfig')) {
             // reset global config to defaults
             self::$global_config = [
                 'path' => sys_get_temp_dir() . '/kpt_cache/',
-                'prefix' => '',
+                'prefix' => self::getDefaultPrefix(),
                 'allowed_backends' => null,
                 'allowed_classes' => false,
             ];
