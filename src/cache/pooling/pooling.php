@@ -54,39 +54,6 @@ if (! class_exists('CacheConnectionPool')) {
         ];
 
         /**
-         * Enable/disable connection pooling
-         *
-         * Toggles connection pooling on or off, automatically closing all
-         * connections when disabled and initializing pools when enabled.
-         *
-         * @since 8.4
-         * @author Kevin Pirnie <me@kpirnie.com>
-         *
-         * @param bool $enabled Whether to enable connection pooling, default false
-         * @return void Returns nothing
-         */
-        public static function setConnectionPooling(bool $enabled = false): void
-        {
-
-            // set the connection pooling status
-            self::$_connection_pooling_enabled = $enabled;
-
-            // if not enabled
-            if (! $enabled) {
-                // close all connection pools
-                CacheConnectionPool::closeAll();
-
-            // otherwise if we're initialized
-            } elseif (self::$_initialized) {
-                // initialize the connection pools
-                self::initializeConnectionPools();
-            }
-
-            // debug logging
-            Logger::debug('Cache Connection Pool Initialized');
-        }
-
-        /**
          * Configure pool settings for a specific backend
          *
          * Updates the pool configuration for a backend, merging new settings
@@ -146,7 +113,7 @@ if (! class_exists('CacheConnectionPool')) {
                     // return the connection
                     return $conn_data['connection'];
 
-                // otherwise
+                    // otherwise
                 } else {
                     // debug logging
                     Logger::debug('Removed Dead Cache Connection Pool', [$conn_data['connection']]);
@@ -180,7 +147,7 @@ if (! class_exists('CacheConnectionPool')) {
                     // return the connection
                     return $conn_data['connection'];
 
-                // otherwise
+                    // otherwise
                 } else {
                     // debug logging
                     Logger::debug('Removed Dead Cache Connection Pool', [$conn_data['connection']]);
@@ -258,7 +225,7 @@ if (! class_exists('CacheConnectionPool')) {
                         // debug logging
                         Logger::debug('Cache Return Connection to Pool', [$pool]);
 
-                    // otherwise
+                        // otherwise
                     } else {
                         // debug logging
                         Logger::debug('Cache Connection Closed', [$pool]);
@@ -297,7 +264,7 @@ if (! class_exists('CacheConnectionPool')) {
                 $pool['idle'] = array_filter($pool['idle'], function ($conn_data) use ($now, $timeout, $backend) {
 
                     // if the connection has timed out
-                    if (( $now - $conn_data['created'] ) > $timeout) {
+                    if (($now - $conn_data['created']) > $timeout) {
                         // close the connection
                         self::closeConnection($backend, $conn_data['connection']);
 
@@ -460,7 +427,7 @@ if (! class_exists('CacheConnectionPool')) {
                         $redis = new \Redis();
 
                         // try to connect
-                        $connected = $redis -> pconnect(
+                        $connected = $redis->pconnect(
                             $config['host'],
                             $config['port'],
                             $config['connect_timeout']
@@ -472,12 +439,12 @@ if (! class_exists('CacheConnectionPool')) {
                         }
 
                         // select the database
-                        $redis -> select($config['database']);
+                        $redis->select($config['database']);
 
                         // if we have a prefix
                         if (! empty($config['prefix'])) {
                             // set the prefix option
-                            $redis -> setOption(\Redis::OPT_PREFIX, $config['prefix']);
+                            $redis->setOption(\Redis::OPT_PREFIX, $config['prefix']);
                         }
 
                         // increment stats
@@ -486,23 +453,23 @@ if (! class_exists('CacheConnectionPool')) {
                         // return the redis connection
                         return $redis;
 
-                    // memcached
+                        // memcached
                     case 'memcached':
                         // create a new memcached connection
                         $memcached = new \Memcached($config['persistent'] ? 'kpt_pool' : null);
 
                         // Only add servers if not using persistent connections or if no servers exist
-                        if (! $config['persistent'] || count($memcached -> getServerList()) === 0) {
+                        if (! $config['persistent'] || count($memcached->getServerList()) === 0) {
                             // add the server
-                            $memcached -> addServer($config['host'], $config['port']);
+                            $memcached->addServer($config['host'], $config['port']);
                         }
 
                         // set options
-                        $memcached -> setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
-                        $memcached -> setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
+                        $memcached->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
+                        $memcached->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
 
                         // Test connection
-                        $stats = $memcached -> getStats();
+                        $stats = $memcached->getStats();
 
                         // if no stats, return null
                         if (empty($stats)) {
@@ -516,7 +483,7 @@ if (! class_exists('CacheConnectionPool')) {
                         return $memcached;
                 }
 
-            // whoopsie...
+                // whoopsie...
             } catch (\Exception $e) {
                 // return null on error
                 return null;
@@ -554,12 +521,12 @@ if (! class_exists('CacheConnectionPool')) {
                         }
 
                         // ping the redis server
-                        $result = $connection -> ping();
+                        $result = $connection->ping();
 
                         // return if ping was successful
                         return $result === true || $result === '+PONG';
 
-                    // memcached
+                        // memcached
                     case 'memcached':
                         // if it's not a memcached instance, return false
                         if (! $connection instanceof \Memcached) {
@@ -567,13 +534,13 @@ if (! class_exists('CacheConnectionPool')) {
                         }
 
                         // get stats from memcached
-                        $stats = $connection -> getStats();
+                        $stats = $connection->getStats();
 
                         // return if we got stats
                         return ! empty($stats);
                 }
 
-            // whoopsie...
+                // whoopsie...
             } catch (\Exception $e) {
                 // return false on error
                 return false;
@@ -608,7 +575,7 @@ if (! class_exists('CacheConnectionPool')) {
                         // if it's a redis instance
                         if ($connection instanceof \Redis) {
                             // close the connection
-                            $connection -> close();
+                            $connection->close();
                         }
                         break;
 
@@ -617,12 +584,12 @@ if (! class_exists('CacheConnectionPool')) {
                         // if it's a memcached instance
                         if ($connection instanceof \Memcached) {
                             // quit the connection
-                            $connection -> quit();
+                            $connection->quit();
                         }
                         break;
                 }
 
-            // whoopsie...
+                // whoopsie...
             } catch (\Exception $e) {
                 // Ignore close errors silently
             }
