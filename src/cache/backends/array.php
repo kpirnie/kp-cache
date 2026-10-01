@@ -104,6 +104,9 @@ if (! trait_exists('\KPT\CacheArray', false)) {
                     self::evictOldestArrayItems(100); // Remove 100 oldest items
                 }
 
+                // drop any existing entry so insertion order stays creation order
+                unset(self::$_array_cache[$_key]);
+
                 // store the item
                 self::$_array_cache[$_key] = [
                     'data' => $_data,
@@ -333,22 +336,9 @@ if (! trait_exists('\KPT\CacheArray', false)) {
                 return $expired_removed;
             }
 
-            // sort by creation time (oldest first)
-            uasort(self::$_array_cache, function ($a, $b) {
-                return $a['created'] <=> $b['created'];
-            });
-
-            // remove oldest items
+            // insertion order is creation order, so the oldest are first
             $evicted = 0;
-            $remaining_to_evict = $count - $expired_removed;
-
-            // loop through and evict the oldest items
-            foreach (self::$_array_cache as $key => $item) {
-                // check if we've evicted enough
-                if ($evicted >= $remaining_to_evict) {
-                    break;
-                }
-
+            foreach (array_slice(array_keys(self::$_array_cache), 0, $count - $expired_removed) as $key) {
                 // remove this item and increment counter
                 unset(self::$_array_cache[$key]);
                 $evicted++;
