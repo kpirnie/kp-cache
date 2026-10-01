@@ -31,6 +31,32 @@ if (! trait_exists('\KPT\CacheRedis')) {
         private static ?\Redis $_redis = null;
 
         /**
+         * Check a command name against the pipeline/transaction allowlist
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param mixed $method The requested command name
+         * @return string Returns the normalized command name
+         * @throws \InvalidArgumentException When the command isn't allowed
+         */
+        private static function allowedRedisCommand(mixed $method): string
+        {
+
+            // only plain data commands, nothing that touches the server or other keys
+            $allowed = ['get', 'set', 'setex', 'del', 'unlink', 'incr', 'incrby', 'decr', 'decrby', 'expire', 'ttl', 'mget', 'exists'];
+
+            // normalize and check
+            $method = is_string($method) ? strtolower($method) : '';
+            if (! in_array($method, $allowed, true)) {
+                throw new \InvalidArgumentException("Redis command not allowed: {$method}");
+            }
+
+            // return the allowed command
+            return $method;
+        }
+
+        /**
          * Test Redis connection
          *
          * Performs a connectivity test to ensure Redis is available
@@ -414,7 +440,7 @@ if (! trait_exists('\KPT\CacheRedis')) {
 
                 // add each command to the transaction
                 foreach ($commands as $command) {
-                    $method = $command['method'];
+                    $method = self::allowedRedisCommand($command['method'] ?? null);
                     $args = $command['args'] ?? [];
                     $multi->$method(...$args);
                 }
@@ -473,7 +499,7 @@ if (! trait_exists('\KPT\CacheRedis')) {
 
                 // add each command to the pipeline
                 foreach ($commands as $command) {
-                    $method = $command['method'];
+                    $method = self::allowedRedisCommand($command['method'] ?? null);
                     $args = $command['args'] ?? [];
                     $pipeline->$method(...$args);
                 }

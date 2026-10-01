@@ -196,7 +196,7 @@ if (! trait_exists('\KPT\CacheRedisAsync')) {
 
                     // add each command to the pipeline
                     foreach ($commands as $command) {
-                        $method = $command['method'];
+                        $method = self::allowedRedisCommand($command['method'] ?? null);
                         $args = $command['args'] ?? [];
                         $pipeline->$method(...$args);
                     }
@@ -247,7 +247,7 @@ if (! trait_exists('\KPT\CacheRedisAsync')) {
 
                     // add each command to the transaction
                     foreach ($commands as $command) {
-                        $method = $command['method'];
+                        $method = self::allowedRedisCommand($command['method'] ?? null);
                         $args = $command['args'] ?? [];
                         $multi->$method(...$args);
                     }
