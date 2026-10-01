@@ -957,7 +957,7 @@ if (! class_exists('Cache')) {
                 $success = self::setToTierInternal($key, $data, $ttl, $tier);
 
                 // setup the results
-                $error_msg = $success ? null : Logger::getLastError();
+                $error_msg = $success ? null : self::$_last_error;
                 $results[$tier] = ['success' => $success, 'error' => $error_msg];
 
                 // if it was successful
@@ -1028,7 +1028,7 @@ if (! class_exists('Cache')) {
                 $success = self::deleteFromTierInternal($key, $tier);
 
                 // throw the results in the return array
-                $error_msg = $success ? null : Logger::getLastError();
+                $error_msg = $success ? null : self::$_last_error;
                 $results[$tier] = ['success' => $success, 'error' => $error_msg];
 
                 // if it was sucessful, increment the count
@@ -1176,7 +1176,7 @@ if (! class_exists('Cache')) {
          */
         public static function getLastError(): ?string
         {
-            return Logger::getLastError();
+            return self::$_last_error;
         }
 
         /**
