@@ -541,7 +541,6 @@ if (! class_exists('\KPT\Cache', false)) {
 
                 // if it was found
                 if ($result !== false) {
-
                     // debug log hits only
                     if ($result !== false) {
                         Logger::debug('Cache Hit', ['tier' => $tier, 'key' => $key, 'tier_key' => $tier_key]);
@@ -1752,7 +1751,6 @@ if (! class_exists('\KPT\Cache', false)) {
 
             // Promote to all higher tiers (lower index = higher priority)
             for ($i = 0; $i < $current_index; $i++) {
-
                 // try to set the item to the higher priority tier
                 $promote_success = self::setToTierInternal($key, $data, self::$_promotion_ttl, $available_tiers[$i]);
 
@@ -1838,7 +1836,6 @@ if (! class_exists('\KPT\Cache', false)) {
 
             // loop over them
             foreach ($available_tiers as $tier) {
-
                 // get the allowed backends and check if this one is indeed allowed
                 $allowed_backends = CacheConfig::getAllowedBackends();
                 if ($allowed_backends !== null && ! in_array($tier, $allowed_backends)) {

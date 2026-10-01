@@ -79,11 +79,13 @@ if (! trait_exists('\KPT\CacheRedis', false)) {
                 $redis = new \Redis();
 
                 // connect, authenticate and select the database
-                if (! CacheConnectionPool::connectRedis(
-                    $redis,
-                    $config,
-                    (float) ($config['connect_timeout'] ?? 2)
-                )) {
+                if (
+                    ! CacheConnectionPool::connectRedis(
+                        $redis,
+                        $config,
+                        (float) ($config['connect_timeout'] ?? 2)
+                    )
+                ) {
                     return false;
                 }
 
@@ -160,11 +162,13 @@ if (! trait_exists('\KPT\CacheRedis', false)) {
                     $redis = new \Redis();
 
                     // connect, authenticate and select the database
-                    if (! CacheConnectionPool::connectRedis(
-                        $redis,
-                        $config,
-                        (float) ($config['connect_timeout'] ?? 2)
-                    )) {
+                    if (
+                        ! CacheConnectionPool::connectRedis(
+                            $redis,
+                            $config,
+                            (float) ($config['connect_timeout'] ?? 2)
+                        )
+                    ) {
                         throw new \RedisException("Connection failed");
                     }
 

@@ -166,10 +166,12 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
             // Try to get an active connection first
             foreach ($pool['active'] as $id => $conn_data) {
                 // if the connection is recent or still healthy
-                if (! self::needsHealthCheck($conn_data) || self::isConnectionHealthy(
-                    $backend,
-                    $conn_data['connection']
-                )) {
+                if (
+                    ! self::needsHealthCheck($conn_data) || self::isConnectionHealthy(
+                        $backend,
+                        $conn_data['connection']
+                    )
+                ) {
                     // update the last used time
                     $pool['active'][$id]['last_used'] = time();
 
@@ -196,10 +198,12 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
                 $conn_data = array_pop($pool['idle']);
 
                 // if the connection is recent or still healthy
-                if (! self::needsHealthCheck($conn_data) || self::isConnectionHealthy(
-                    $backend,
-                    $conn_data['connection']
-                )) {
+                if (
+                    ! self::needsHealthCheck($conn_data) || self::isConnectionHealthy(
+                        $backend,
+                        $conn_data['connection']
+                    )
+                ) {
                     // generate a unique id
                     $id = uniqid();
 

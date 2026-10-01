@@ -65,7 +65,6 @@ if (! trait_exists('\KPT\CacheArray', false)) {
 
             // check if expired
             if (isset($cached_item['expires']) && $cached_item['expires'] > 0 && $cached_item['expires'] <= time()) {
-
                 // remove expired item
                 unset(self::$_array_cache[$_key]);
                 self::$_array_misses++;

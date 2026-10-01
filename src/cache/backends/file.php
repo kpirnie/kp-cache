@@ -26,7 +26,6 @@ if (! trait_exists('\KPT\CacheFile', false)) {
      */
     trait CacheFile
     {
-
         /**
          * Create cache directory private to this process
          *

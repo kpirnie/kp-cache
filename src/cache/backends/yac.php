@@ -27,7 +27,6 @@ if (! trait_exists('\KPT\CacheYAC', false)) {
      */
     trait CacheYAC
     {
-
         /**
          * Get the versioned key prefix for YAC
          *
