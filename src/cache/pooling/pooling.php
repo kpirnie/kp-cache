@@ -497,12 +497,6 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
                             return null;
                         }
 
-                        // if we have a prefix
-                        if (! empty($config['prefix'])) {
-                            // set the prefix option
-                            $redis->setOption(\Redis::OPT_PREFIX, $config['prefix']);
-                        }
-
                         // increment stats
                         self::$pools[$backend]['stats']['total_created']++;
 

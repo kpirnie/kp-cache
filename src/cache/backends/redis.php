@@ -168,11 +168,6 @@ if (! trait_exists('\KPT\CacheRedis', false)) {
                         throw new \RedisException("Connection failed");
                     }
 
-                    // set prefix if configured
-                    if (! empty($config['prefix'])) {
-                        $redis->setOption(\Redis::OPT_PREFIX, $config['prefix'] ?? CacheConfig::getGlobalPrefix());
-                    }
-
                     // test connection with ping
                     $ping_result = $redis->ping();
                     if ($ping_result !== true && $ping_result !== '+PONG') {
