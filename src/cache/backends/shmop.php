@@ -99,6 +99,37 @@ if (! trait_exists('\KPT\CacheSHMOP', false)) {
         }
 
         /**
+         * Read the length-prefixed payload from a SHMOP segment
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param \Shmop $segment The open segment
+         * @return string|null Returns the payload or null if empty/invalid
+         */
+        private static function readShmopPayload(\Shmop $segment): ?string
+        {
+
+            // need at least the 4 byte length header
+            $size = shmop_size($segment);
+            if ($size < 4) {
+                return null;
+            }
+
+            // read the payload length
+            $header = unpack('Nlen', shmop_read($segment, 0, 4));
+            $length = $header['len'] ?? 0;
+
+            // the length has to fit in the segment
+            if ($length < 1 || $length > $size - 4) {
+                return null;
+            }
+
+            // read only the payload
+            return shmop_read($segment, 4, $length);
+        }
+
+        /**
          * Get item from shmop shared memory
          *
          * Retrieves a cached item from shared memory using SHMOP
@@ -131,26 +162,17 @@ if (! trait_exists('\KPT\CacheSHMOP', false)) {
                     return false;
                 }
 
-                // Get the size of the segment
-                $size = shmop_size($segment);
-
-                // check if segment is empty
-                if ($size === 0) {
-                    @shmop_close($segment);
-                    return false;
-                }
-
-                // Read the data
-                $data = shmop_read($segment, 0, $size);
+                // Read the payload
+                $data = self::readShmopPayload($segment);
                 @shmop_close($segment);
 
                 // check if read failed
-                if ($data === false) {
+                if ($data === null) {
                     return false;
                 }
 
                 // Unserialize and check expiration
-                $unserialized = @unserialize(trim($data, "\0"), ['allowed_classes' => CacheConfig::getAllowedClasses()]);
+                $unserialized = @unserialize($data, ['allowed_classes' => CacheConfig::getAllowedClasses()]);
 
                 // check if we have valid cached data
                 if (is_array($unserialized) && isset($unserialized['expires'], $unserialized['data']) && ($unserialized['key'] ?? null) === $key) {
@@ -213,11 +235,19 @@ if (! trait_exists('\KPT\CacheSHMOP', false)) {
                 $serialized_data = serialize($cache_data);
                 $data_size = strlen($serialized_data);
 
-                // Use configured segment size or data size, whichever is larger
-                $segment_size = max($data_size + 100, $config['segment_size'] ?? 1048576);
+                // length header plus the payload, sized to fit
+                $payload = pack('N', $data_size) . $serialized_data;
+                $segment_size = strlen($payload);
 
                 // Try to open existing segment first
                 $segment = @shmop_open($shmop_key, 'w', 0, 0);
+
+                // too small for the new payload, so recreate it
+                if ($segment !== false && shmop_size($segment) < $segment_size) {
+                    @shmop_delete($segment);
+                    @shmop_close($segment);
+                    $segment = false;
+                }
 
                 // If doesn't exist, create new segment
                 if ($segment === false) {
@@ -229,11 +259,8 @@ if (! trait_exists('\KPT\CacheSHMOP', false)) {
                     return false;
                 }
 
-                // Pad data to prevent issues with reading
-                $padded_data = str_pad($serialized_data, $segment_size, "\0");
-
                 // Write data
-                $written = @shmop_write($segment, $padded_data, 0);
+                $written = @shmop_write($segment, $payload, 0);
                 @shmop_close($segment);
 
                 // check if write was successful
@@ -339,10 +366,9 @@ if (! trait_exists('\KPT\CacheSHMOP', false)) {
                 try {
                     $segment = @shmop_open($shmop_key, 'a', 0, 0);
                     if ($segment !== false) {
-                        $size = shmop_size($segment);
-                        if ($size > 0) {
-                            $data = shmop_read($segment, 0, $size);
-                            $unserialized = @unserialize(trim($data, "\0"), ['allowed_classes' => CacheConfig::getAllowedClasses()]);
+                        $data = self::readShmopPayload($segment);
+                        if ($data !== null) {
+                            $unserialized = @unserialize($data, ['allowed_classes' => CacheConfig::getAllowedClasses()]);
 
                             if (is_array($unserialized) && isset($unserialized['expires'])) {
                                 if ($unserialized['expires'] <= time()) {
