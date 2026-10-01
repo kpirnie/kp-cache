@@ -627,7 +627,6 @@ if (! class_exists('\KPT\CacheKeyManager', false)) {
          */
         public static function getLastError(): ?string
         {
-            Logger::error("Cache Key Error", ['error' => self::$_last_error]);
             return self::$_last_error;
         }
 

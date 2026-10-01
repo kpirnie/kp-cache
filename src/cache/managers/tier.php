@@ -495,7 +495,6 @@ if (! class_exists('\KPT\CacheTierManager', false)) {
          */
         public static function getLastError(): ?string
         {
-            Logger::error("Cache Tier Error", ['error' => self::$_last_error]);
             return self::$_last_error;
         }
 
