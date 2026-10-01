@@ -86,7 +86,7 @@ if (! trait_exists('\KPT\CacheSHMOP')) {
                 }
 
                 // Verify data integrity
-                $unserialized = @unserialize(trim($read_data, "\0"));
+                $unserialized = @unserialize(trim($read_data, "\0"), ['allowed_classes' => CacheConfig::getAllowedClasses()]);
                 return is_array($unserialized)
                     && isset($unserialized['data'])
                     && $unserialized['data'] === $test_data;
@@ -150,7 +150,7 @@ if (! trait_exists('\KPT\CacheSHMOP')) {
                 }
 
                 // Unserialize and check expiration
-                $unserialized = @unserialize(trim($data, "\0"));
+                $unserialized = @unserialize(trim($data, "\0"), ['allowed_classes' => CacheConfig::getAllowedClasses()]);
 
                 // check if we have valid cached data
                 if (is_array($unserialized) && isset($unserialized['expires'], $unserialized['data'])) {
@@ -361,7 +361,7 @@ if (! trait_exists('\KPT\CacheSHMOP')) {
                         $size = shmop_size($segment);
                         if ($size > 0) {
                             $data = shmop_read($segment, 0, $size);
-                            $unserialized = @unserialize(trim($data, "\0"));
+                            $unserialized = @unserialize(trim($data, "\0"), ['allowed_classes' => CacheConfig::getAllowedClasses()]);
 
                             if (is_array($unserialized) && isset($unserialized['expires'])) {
                                 if ($unserialized['expires'] <= time()) {

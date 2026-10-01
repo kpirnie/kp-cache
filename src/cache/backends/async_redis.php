@@ -62,7 +62,7 @@ if (! trait_exists('\KPT\CacheRedisAsync')) {
                     CacheConnectionPool::returnConnection('redis', $connection);
 
                     // unserialize the result and resolve
-                    $result = $value !== false ? unserialize($value) : false;
+                    $result = $value !== false ? unserialize($value, ['allowed_classes' => CacheConfig::getAllowedClasses()]) : false;
                     $resolve($result);
 
                     // whoopsie... reject the promise with the error
@@ -316,7 +316,7 @@ if (! trait_exists('\KPT\CacheRedisAsync')) {
                     $results = [];
                     foreach ($keys as $i => $key) {
                         $value = $values[$i] ?? false;
-                        $results[$key] = $value !== false ? unserialize($value) : false;
+                        $results[$key] = $value !== false ? unserialize($value, ['allowed_classes' => CacheConfig::getAllowedClasses()]) : false;
                     }
 
                     // resolve with results

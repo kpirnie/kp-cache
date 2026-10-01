@@ -201,7 +201,7 @@ if (! trait_exists('\KPT\CacheFile')) {
                     }
 
                     // Return the unserialized data
-                    return unserialize(substr($data, 10));
+                    return unserialize(substr($data, 10), ['allowed_classes' => CacheConfig::getAllowedClasses()]);
                 } catch (\Exception $e) {
                     self::$_last_error = "File cache read error: " . $e->getMessage();
                     return false;

@@ -233,7 +233,7 @@ if (! trait_exists('\KPT\CacheSQLite')) {
                 // check if we have a result and cache value
                 if ($result && $result->cache_value) {
                     // unserialize the cached data
-                    $data = unserialize($result->cache_value);
+                    $data = unserialize($result->cache_value, ['allowed_classes' => CacheConfig::getAllowedClasses()]);
                     return $data !== false ? $data : false;
                 }
 

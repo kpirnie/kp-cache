@@ -250,7 +250,7 @@ if (! trait_exists('\KPT\CacheRedis')) {
                 $value = $connection->get($prefixed_key);
 
                 // unserialize and return the value
-                return $value !== false ? unserialize($value) : false;
+                return $value !== false ? unserialize($value, ['allowed_classes' => CacheConfig::getAllowedClasses()]) : false;
 
                 // whoopsie... handle errors
             } catch (\RedisException $e) {
@@ -556,7 +556,7 @@ if (! trait_exists('\KPT\CacheRedis')) {
                 $results = [];
                 foreach ($keys as $i => $key) {
                     $value = $values[$i] ?? false;
-                    $results[$key] = $value !== false ? unserialize($value) : false;
+                    $results[$key] = $value !== false ? unserialize($value, ['allowed_classes' => CacheConfig::getAllowedClasses()]) : false;
                 }
 
                 // return the results
