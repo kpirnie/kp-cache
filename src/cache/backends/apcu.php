@@ -242,16 +242,14 @@ if (! trait_exists('\KPT\CacheAPCU', false)) {
                 // setup the stats array
                 $stats = [];
 
-                // Get basic cache info
+                // Get basic cache info without the full entry list
                 if (function_exists('apcu_cache_info')) {
-                    $cache_info = apcu_cache_info();
-                    $stats['cache_info'] = $cache_info;
+                    $stats['cache_info'] = apcu_cache_info(true);
                 }
 
                 // Get SMA (Shared Memory Allocation) info
                 if (function_exists('apcu_sma_info')) {
-                    $sma_info = apcu_sma_info();
-                    $stats['sma_info'] = $sma_info;
+                    $stats['sma_info'] = apcu_sma_info();
                 }
 
                 // Add our prefix-specific stats
@@ -262,19 +260,10 @@ if (! trait_exists('\KPT\CacheAPCU', false)) {
                 $our_keys = 0;
                 $our_size = 0;
 
-                // check if we have cache list
-                if (isset($cache_info['cache_list'])) {
-                    // loop through each entry
-                    foreach ($cache_info['cache_list'] as $entry) {
-                        // get the key
-                        $key = $entry['info'] ?? $entry['key'] ?? '';
-
-                        // check if it starts with our prefix
-                        if (strpos($key, $prefix) === 0) {
-                            $our_keys++;
-                            $our_size += $entry['mem_size'] ?? 0;
-                        }
-                    }
+                // walk only our keys
+                foreach (new \APCUIterator('/^' . preg_quote($prefix, '/') . '/', APC_ITER_MEM_SIZE) as $entry) {
+                    $our_keys++;
+                    $our_size += $entry['mem_size'] ?? 0;
                 }
 
                 // add our custom stats
@@ -282,14 +271,14 @@ if (! trait_exists('\KPT\CacheAPCU', false)) {
                     'prefix' => $prefix,
                     'our_keys' => $our_keys,
                     'our_memory_usage' => $our_size,
-                    'our_memory_usage_human' => KPT::format_bytes($our_size)
+                    'our_memory_usage_human' => self::formatBytes($our_size)
                 ];
 
                 // return the stats
                 return $stats;
 
                 // whoopsie... return the error
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 return ['error' => $e->getMessage()];
             }
         }
@@ -349,43 +338,25 @@ if (! trait_exists('\KPT\CacheAPCU', false)) {
                 $config = CacheConfig::get('apcu');
                 $prefixed_key = ($config['prefix'] ?? CacheConfig::getGlobalPrefix()) . $_key;
 
-                // APCu doesn't have a direct TTL function, so we need to check cache info
-                if (function_exists('apcu_cache_info')) {
-                    // get the cache info
-                    $cache_info = apcu_cache_info();
-
-                    // check if we have a cache list
-                    if (isset($cache_info['cache_list'])) {
-                        // loop through each entry
-                        foreach ($cache_info['cache_list'] as $entry) {
-                            // get the key
-                            $key = $entry['info'] ?? $entry['key'] ?? '';
-
-                            // check if this is our key
-                            if ($key === $prefixed_key) {
-                                // get the creation time and ttl
-                                $creation_time = $entry['creation_time'] ?? 0;
-                                $ttl = $entry['ttl'] ?? 0;
-
-                                // if we have a ttl, calculate remaining time
-                                if ($ttl > 0) {
-                                    $expires_at = $creation_time + $ttl;
-                                    $remaining = $expires_at - time();
-                                    return max(0, $remaining);
-                                }
-
-                                // No TTL (permanent)
-                                return -1;
-                            }
-                        }
-                    }
-                }
+                // look up just this key
+                $info = apcu_key_info($prefixed_key);
 
                 // Key not found
-                return -2;
+                if (! is_array($info)) {
+                    return -2;
+                }
+
+                // No TTL (permanent)
+                $ttl = $info['ttl'] ?? 0;
+                if ($ttl <= 0) {
+                    return -1;
+                }
+
+                // calculate remaining time
+                return max(0, ($info['creation_time'] ?? 0) + $ttl - time());
 
                 // whoopsie... return -1
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 return -1;
             }
         }
@@ -663,33 +634,19 @@ if (! trait_exists('\KPT\CacheAPCU', false)) {
                 $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
                 $our_keys = [];
 
-                // check if we have cache info function
-                if (function_exists('apcu_cache_info')) {
-                    // get the cache info
-                    $cache_info = apcu_cache_info();
-
-                    // check if we have a cache list
-                    if (isset($cache_info['cache_list'])) {
-                        // loop through each entry
-                        foreach ($cache_info['cache_list'] as $entry) {
-                            // get the key
-                            $key = $entry['info'] ?? $entry['key'] ?? '';
-
-                            // check if it starts with our prefix
-                            if (strpos($key, $prefix) === 0) {
-                                // add to our keys array
-                                $our_keys[] = [
-                                    'key' => substr($key, strlen($prefix)),
-                                    'full_key' => $key,
-                                    'creation_time' => $entry['creation_time'] ?? 0,
-                                    'ttl' => $entry['ttl'] ?? 0,
-                                    'access_time' => $entry['access_time'] ?? 0,
-                                    'ref_count' => $entry['ref_count'] ?? 0,
-                                    'mem_size' => $entry['mem_size'] ?? 0
-                                ];
-                            }
-                        }
-                    }
+                // walk only our keys
+                $format = APC_ITER_KEY | APC_ITER_CTIME | APC_ITER_TTL | APC_ITER_ATIME | APC_ITER_REFCOUNT | APC_ITER_MEM_SIZE;
+                foreach (new \APCUIterator('/^' . preg_quote($prefix, '/') . '/', $format) as $entry) {
+                    // add to our keys array
+                    $our_keys[] = [
+                        'key' => substr($entry['key'], strlen($prefix)),
+                        'full_key' => $entry['key'],
+                        'creation_time' => $entry['creation_time'] ?? 0,
+                        'ttl' => $entry['ttl'] ?? 0,
+                        'access_time' => $entry['access_time'] ?? 0,
+                        'ref_count' => $entry['ref_count'] ?? 0,
+                        'mem_size' => $entry['mem_size'] ?? 0
+                    ];
                 }
 
                 // return our keys
@@ -723,33 +680,23 @@ if (! trait_exists('\KPT\CacheAPCU', false)) {
             try {
                 // APCu handles expiration automatically on access
                 // We can iterate through cache entries to force cleanup
-                if (function_exists('apcu_cache_info')) {
-                    $cache_info = apcu_cache_info();
+                $current_time = time();
+                $config = CacheConfig::get('apcu');
+                $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
 
-                    if (isset($cache_info['cache_list'])) {
-                        $current_time = time();
-                        $config = CacheConfig::get('apcu');
-                        $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
+                // walk only our keys
+                $format = APC_ITER_KEY | APC_ITER_CTIME | APC_ITER_TTL;
+                foreach (new \APCUIterator('/^' . preg_quote($prefix, '/') . '/', $format) as $entry) {
+                    $ttl = $entry['ttl'] ?? 0;
 
-                        foreach ($cache_info['cache_list'] as $entry) {
-                            $key = $entry['info'] ?? $entry['key'] ?? '';
-
-                            // Only process our prefixed keys
-                            if (strpos($key, $prefix) === 0) {
-                                $creation_time = $entry['creation_time'] ?? 0;
-                                $ttl = $entry['ttl'] ?? 0;
-
-                                // Check if expired
-                                if ($ttl > 0 && ($creation_time + $ttl) < $current_time) {
-                                    if (apcu_delete($key)) {
-                                        $count++;
-                                    }
-                                }
-                            }
+                    // Check if expired
+                    if ($ttl > 0 && (($entry['creation_time'] ?? 0) + $ttl) < $current_time) {
+                        if (apcu_delete($entry['key'])) {
+                            $count++;
                         }
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 // Silent fail
             }
 

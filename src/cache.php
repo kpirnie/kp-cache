@@ -1347,15 +1347,11 @@ if (! class_exists('\KPT\Cache', false)) {
                 $our_entries = 0;
                 $our_size = 0;
 
-                // Get full info with cache list to count our entries
-                $full_info = apcu_cache_info(true);
-                if (isset($full_info['cache_list'])) {
-                    foreach ($full_info['cache_list'] as $entry) {
-                        $key = $entry['info'] ?? $entry['key'] ?? '';
-                        if (strpos($key, $prefix) === 0) {
-                            $our_entries++;
-                            $our_size += $entry['mem_size'] ?? 0;
-                        }
+                // walk only our keys
+                if (class_exists('\APCUIterator')) {
+                    foreach (new \APCUIterator('/^' . preg_quote($prefix, '/') . '/', APC_ITER_MEM_SIZE) as $entry) {
+                        $our_entries++;
+                        $our_size += $entry['mem_size'] ?? 0;
                     }
                 }
 
