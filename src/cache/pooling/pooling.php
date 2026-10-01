@@ -303,7 +303,7 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
                     unset($pool['active'][$id]);
 
                     // Only return to idle pool if under max idle connections
-                    if (count($pool['idle']) < floor($pool['config']['max_connections'] / 2)) {
+                    if (count($pool['idle']) < max(1, floor($pool['config']['max_connections'] / 2))) {
                         // add to idle pool
                         $pool['idle'][] = $conn_data;
 
@@ -349,7 +349,7 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
                 $pool['idle'] = array_filter($pool['idle'], function ($conn_data) use ($now, $timeout, $backend) {
 
                     // if the connection has timed out
-                    if (($now - $conn_data['created']) > $timeout) {
+                    if (($now - $conn_data['last_used']) > $timeout) {
                         // close the connection
                         self::closeConnection($backend, $conn_data['connection']);
 
@@ -639,7 +639,8 @@ if (! class_exists('\KPT\CacheConnectionPool', false)) {
                     // memcached
                     case 'memcached':
                         // if it's a memcached instance
-                        if ($connection instanceof \Memcached) {
+                        // persistent instances share one connection, quitting would kill it for all
+                        if ($connection instanceof \Memcached && ! $connection->isPersistent()) {
                             // quit the connection
                             $connection->quit();
                         }

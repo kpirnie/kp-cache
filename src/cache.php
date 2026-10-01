@@ -277,7 +277,7 @@ if (! class_exists('\KPT\Cache', false)) {
                 // configure the pool
                 CacheConnectionPool::configurePool('memcached', [
                     'min_connections' => 1,
-                    'max_connections' => 16,
+                    'max_connections' => 1,
                     'idle_timeout' => 300
                 ]);
             }
