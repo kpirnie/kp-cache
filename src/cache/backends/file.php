@@ -267,50 +267,6 @@ if (! trait_exists('\KPT\CacheFile', false)) {
         }
 
         /**
-         * Cleans up expires items from the cache
-         *
-         * @since 8.4
-         * @author Kevin Pirnie <me@kpirnie.com>
-         *
-         * @return int Returns the number of items removed
-         */
-        private static function cleanupFile(): int
-        {
-
-            // setup the count to return
-            $count = 0;
-
-            // Clean up file cache
-            $files = glob(self::getCachePath() . '*');
-
-            // loop over each file
-            foreach ($files as $file) {
-                // if it's a real file
-                if (is_file($file)) {
-                    // get the file contents
-                    $content = file_get_contents($file);
-
-                    // if we have content
-                    if ($content !== false) {
-                        // get the expiry time
-                        $expires = substr($content, 0, 10);
-
-                        // if it's numeric and expired
-                        if (is_numeric($expires) && time() > (int)$expires) {
-                            // if we can unlink it, increment the count
-                            if (unlink($file)) {
-                                $count++;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // return the count
-            return $count;
-        }
-
-        /**
          * Get detailed information about the cache path and permissions
          *
          * Returns comprehensive information about the cache directory
@@ -599,6 +555,11 @@ if (! trait_exists('\KPT\CacheFile', false)) {
          */
         private static function cleanupExpiredFiles(): int
         {
+
+            // no private directory, nothing of ours to clean
+            if (! self::$_file_path_private) {
+                return 0;
+            }
 
             // get cache path and files
             $cache_path = self::getCachePath();

@@ -1856,7 +1856,7 @@ if (! class_exists('\KPT\Cache', false)) {
                         self::TIER_APCU => self::cleanupAPCu(),
                         self::TIER_YAC => self::cleanupYac(),
                         self::TIER_SQLITE => self::cleanupSQLite(),
-                        self::TIER_FILE => self::cleanupFile(),
+                        self::TIER_FILE => self::cleanupExpiredFiles(),
                         default => 0
                     };
 
