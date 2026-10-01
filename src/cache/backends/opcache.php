@@ -40,16 +40,24 @@ if (! trait_exists('\KPT\CacheOPCache', false)) {
         private static function isOPcacheEnabled(): bool
         {
 
+            // resolve once per request
+            static $enabled = null;
+            if ($enabled !== null) {
+                return $enabled;
+            }
+
             // first check if the opcache functions exist
             if (! function_exists('opcache_get_status')) {
-                return false;
+                return $enabled = false;
             }
 
             // just try to get the opcache status
             $status = opcache_get_status(false);
 
             // return the success of the opcache being enabled
-            return is_array($status) && isset($status['opcache_enabled']) && $status['opcache_enabled'];
+            return $enabled = is_array($status) &&
+                isset($status['opcache_enabled']) &&
+                $status['opcache_enabled'];
         }
 
         /**
@@ -77,8 +85,12 @@ if (! trait_exists('\KPT\CacheOPCache', false)) {
             // Use configured path from global config
             $cache_path = $config['path'] ?? sys_get_temp_dir() . '/kpt_cache/';
 
-            // the directory has to be private to us, otherwise the tier is off
-            if (! self::ensureOPcacheDirectory($cache_path)) {
+            // the directory has to be private to us, otherwise the tier is off (checked once per path per request)
+            static $checked_paths = [];
+            if (! isset($checked_paths[$cache_path])) {
+                $checked_paths[$cache_path] = self::ensureOPcacheDirectory($cache_path);
+            }
+            if (! $checked_paths[$cache_path]) {
                 return null;
             }
 
