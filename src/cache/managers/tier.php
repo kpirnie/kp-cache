@@ -583,8 +583,8 @@ if (! class_exists('\KPT\CacheTierManager', false)) {
                     self::TIER_SHMOP => function_exists('shmop_open'),
                     self::TIER_APCU => function_exists('apcu_enabled') && apcu_enabled(),
                     self::TIER_YAC => extension_loaded('yac'),
-                    self::TIER_REDIS => class_exists('Redis'),
-                    self::TIER_MEMCACHED => class_exists('Memcached'),
+                    self::TIER_REDIS => class_exists('Redis') && self::testTierAvailability(self::TIER_REDIS),
+                    self::TIER_MEMCACHED => class_exists('Memcached') && self::testTierAvailability(self::TIER_MEMCACHED),
                     self::TIER_SQLITE => class_exists('PDO') && in_array('sqlite', \PDO::getAvailableDrivers()),
                     self::TIER_FILE => true,
                     default => false
