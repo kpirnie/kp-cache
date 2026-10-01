@@ -13,7 +13,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('\KPT\CacheMemcached')) {
+if (! trait_exists('\KPT\CacheMemcached', false)) {
 
     /**
      * KPT Cache Memcached Trait

@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('\KPT\CacheOPCacheAsync')) {
+if (! trait_exists('\KPT\CacheOPCacheAsync', false)) {
 
     /**
      * KPT Cache OPCache Async Trait

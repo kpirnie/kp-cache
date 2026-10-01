@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('\KPT\CacheMixedAsync')) {
+if (! trait_exists('\KPT\CacheMixedAsync', false)) {
 
     /**
      * KPT Cache Mixed Async Trait

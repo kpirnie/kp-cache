@@ -15,7 +15,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('\KPT\CacheKeyManager')) {
+if (! class_exists('\KPT\CacheKeyManager', false)) {
 
     /**
      * KPT Cache Key Manager

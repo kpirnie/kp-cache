@@ -19,7 +19,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('\KPT\Cache')) {
+if (! class_exists('\KPT\Cache', false)) {
 
     /**
      * KPT Cache - Modern Multi-tier Caching System (Refactored)

@@ -13,7 +13,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('\KPT\CacheYAC')) {
+if (! trait_exists('\KPT\CacheYAC', false)) {
 
     /**
      * KPT Cache YAC Trait

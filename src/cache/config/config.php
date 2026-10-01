@@ -17,7 +17,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('\KPT\CacheConfig')) {
+if (! class_exists('\KPT\CacheConfig', false)) {
 
     /**
      * KPT Cache Configuration Manager
@@ -314,7 +314,7 @@ if (! class_exists('\KPT\CacheConfig')) {
             self::$global_config['allowed_backends'] = $backends;
 
             // Reset tier discovery when allowed backends change
-            if (class_exists('\KPT\CacheTierManager')) {
+            if (class_exists('\KPT\CacheTierManager', false)) {
                 CacheTierManager::reset();
             }
         }

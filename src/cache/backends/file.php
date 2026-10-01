@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('\KPT\CacheFile')) {
+if (! trait_exists('\KPT\CacheFile', false)) {
 
     /**
      * KPT Cache File Trait

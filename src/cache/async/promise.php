@@ -17,7 +17,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('\KPT\CachePromise')) {
+if (! class_exists('\KPT\CachePromise', false)) {
 
     /**
      * KPT Cache Promise Class

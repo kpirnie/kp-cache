@@ -16,7 +16,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('\KPT\CacheHealthMonitor')) {
+if (! class_exists('\KPT\CacheHealthMonitor', false)) {
 
     /**
      * KPT Cache Health Monitor

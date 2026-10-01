@@ -15,7 +15,7 @@
 namespace KPT;
 
 // make sure the trait doesn't exist first
-if (! trait_exists('\KPT\CacheSQLite')) {
+if (! trait_exists('\KPT\CacheSQLite', false)) {
 
     /**
      * KPT Cache SQLite Backend Trait

@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't exist first
-if (! trait_exists('\KPT\CacheOPCache')) {
+if (! trait_exists('\KPT\CacheOPCache', false)) {
 
     /**
      * KPT Cache OPCache Trait

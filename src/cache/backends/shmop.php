@@ -13,7 +13,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('\KPT\CacheSHMOP')) {
+if (! trait_exists('\KPT\CacheSHMOP', false)) {
 
     /**
      * KPT Cache SHMOP Trait

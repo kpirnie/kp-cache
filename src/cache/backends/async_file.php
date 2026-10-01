@@ -12,7 +12,7 @@
 namespace KPT;
 
 // make sure the trait doesn't already exist
-if (! trait_exists('\KPT\CacheFileAsync')) {
+if (! trait_exists('\KPT\CacheFileAsync', false)) {
 
     /**
      * KPT Cache File Async Trait

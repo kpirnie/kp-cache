@@ -15,7 +15,7 @@
 namespace KPT;
 
 // make sure the class doesn't exist
-if (! class_exists('\KPT\CacheTierManager')) {
+if (! class_exists('\KPT\CacheTierManager', false)) {
 
     /**
      * KPT Cache Tier Manager
