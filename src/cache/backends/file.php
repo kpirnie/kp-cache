@@ -172,14 +172,29 @@ if (! trait_exists('\KPT\CacheFile')) {
 
             // try to write the file
             try {
-                // Write with exclusive lock, private to this process
+                // write to a temp file private to this process, then swap it into place
+                $temp_file = $file . '.' . bin2hex(random_bytes(6));
                 $old_umask = umask(0077);
                 try {
-                    $result = file_put_contents($file, $data, LOCK_EX);
+                    $result = file_put_contents($temp_file, $data);
                 } finally {
                     umask($old_umask);
                 }
-                return $result !== false;
+
+                // the write failed
+                if ($result === false) {
+                    @unlink($temp_file);
+                    return false;
+                }
+
+                // atomic replace so readers never see a partial file
+                if (! @rename($temp_file, $file)) {
+                    @unlink($temp_file);
+                    return false;
+                }
+
+                // success
+                return true;
             } catch (\Exception $e) {
                 self::$_last_error = "File cache write error: " . $e->getMessage();
                 return false;
