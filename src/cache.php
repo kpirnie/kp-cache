@@ -1916,5 +1916,71 @@ if (! class_exists('\KPT\Cache')) {
             // return the formatted size
             return round(pow(1024, $base - $index), $precision) . ' ' . $suffixes[$index];
         }
+
+        /**
+         * Get the effective user id of the running process
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @return int Returns the process user id
+         */
+        private static function getProcessUid(): int
+        {
+
+            // hold the resolved uid for the request
+            static $uid = null;
+            if ($uid !== null) {
+                return $uid;
+            }
+
+            // posix gives us the real answer
+            if (function_exists('posix_geteuid')) {
+                return $uid = posix_geteuid();
+            }
+
+            // otherwise check the owner of a file we create
+            $probe = @tempnam(sys_get_temp_dir(), 'kpt_');
+            if ($probe !== false) {
+                $uid = (int) fileowner($probe);
+                @unlink($probe);
+                return $uid;
+            }
+
+            // last resort
+            return $uid = getmyuid();
+        }
+
+        /**
+         * Check that a path is owned by this process and closed to everyone else
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param string $path The file or directory path to check
+         * @return bool Returns true if the path is private to this process
+         */
+        private static function isPrivatePath(string $path): bool
+        {
+
+            // strip trailing separators so symlinked directories are detected
+            $path = rtrim($path, '/\\');
+
+            // ownership and modes don't apply on windows
+            if (PHP_OS_FAMILY === 'Windows') {
+                return file_exists($path);
+            }
+
+            // make sure we're looking at fresh stats
+            clearstatcache(true, $path);
+
+            // refuse symlinks and anything we don't own
+            if (is_link($path) || ! file_exists($path) || fileowner($path) !== self::getProcessUid()) {
+                return false;
+            }
+
+            // refuse group or world access
+            return (fileperms($path) & 0077) === 0;
+        }
     }
 }

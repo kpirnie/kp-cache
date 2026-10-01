@@ -62,9 +62,9 @@ if (! trait_exists('\KPT\CacheOPCache')) {
          * @author Kevin Pirnie <me@kpirnie.com>
          *
          * @param string $key The cache key to generate path for
-         * @return string Returns the full file path for the cache item
+         * @return ?string Returns the full file path, or null if the directory isn't private
          */
-        private static function getOPcacheFilePath(string $key): string
+        private static function getOPcacheFilePath(string $key): ?string
         {
 
             // get opcache configuration
@@ -77,11 +77,9 @@ if (! trait_exists('\KPT\CacheOPCache')) {
             // Use configured path from global config
             $cache_path = $config['path'] ?? sys_get_temp_dir() . '/kpt_cache/';
 
-            // Ensure cache path exists with proper error handling
+            // the directory has to be private to us, otherwise the tier is off
             if (! self::ensureOPcacheDirectory($cache_path)) {
-                // Fallback to system temp with unique subdirectory
-                $cache_path = sys_get_temp_dir() . '/kpt_opcache_' . getmypid() . '/';
-                self::ensureOPcacheDirectory($cache_path);
+                return null;
             }
 
             // return the full file path
@@ -89,10 +87,11 @@ if (! trait_exists('\KPT\CacheOPCache')) {
         }
 
         /**
-         * Ensure OPcache directory exists and is writable
+         * Ensure OPcache directory exists and is private
          *
-         * Creates and validates the OPCache directory with proper
-         * permissions for storing cache files.
+         * Creates the OPCache directory private to this process and refuses
+         * to use it when it is a symlink, owned by someone else, or open to
+         * group or world access.
          *
          * @since 8.4
          * @author Kevin Pirnie <me@kpirnie.com>
@@ -103,33 +102,32 @@ if (! trait_exists('\KPT\CacheOPCache')) {
         private static function ensureOPcacheDirectory(string $path): bool
         {
 
-            // try to ensure directory exists and is writable
+            // try to ensure directory exists and is private
             try {
-                // If directory already exists and is writable, we're good
-                if (is_dir($path) && is_writable($path)) {
-                    return true;
+                // create the directory private to us if it isn't there
+                if (! is_dir($path) && ! @mkdir($path, 0700, true) && ! is_dir($path)) {
+                    self::$_last_error = "OPcache: Cannot create directory: {$path}";
+                    return false;
                 }
 
-                // Try to create the directory
-                if (! is_dir($path)) {
-                    // create the directory with proper permissions
-                    if (! mkdir($path, 0755, true)) {
-                        return false;
-                    }
+                // if we own it but it's open to others, lock it down
+                $dir = rtrim($path, '/\\');
+                if (PHP_OS_FAMILY !== 'Windows' && ! is_link($dir) && fileowner($dir) === self::getProcessUid()) {
+                    @chmod($dir, 0700);
                 }
 
-                // Check if it's writable
-                if (! is_writable($path)) {
-                    // Try to fix permissions
-                    @chmod($path, 0755);
-                    return is_writable($path);
+                // refuse anything that isn't private to us
+                if (! self::isPrivatePath($dir)) {
+                    self::$_last_error = "OPcache: Directory is not private to this process: {$path}";
+                    Logger::warning("OPcache tier disabled, directory is not private", ['path' => $path]);
+                    return false;
                 }
 
-                // directory is ready
-                return true;
+                // directory is ready if we can write to it
+                return is_writable($dir);
 
                 // whoopsie... setup the error and return false
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 self::$_last_error = "OPcache directory creation failed: " . $e->getMessage();
                 return false;
             }
@@ -158,8 +156,13 @@ if (! trait_exists('\KPT\CacheOPCache')) {
             // setup the cache key file using configured path
             $temp_file = self::getOPcacheFilePath($_key);
 
-            // if the file does not exist, return false
-            if (! file_exists($temp_file)) {
+            // no private directory, or no file
+            if ($temp_file === null || ! file_exists($temp_file)) {
+                return false;
+            }
+
+            // never include a file we don't own or that others can touch
+            if (! self::isPrivatePath($temp_file)) {
                 return false;
             }
 
@@ -169,11 +172,11 @@ if (! trait_exists('\KPT\CacheOPCache')) {
                 $data = include $temp_file;
 
                 // if the data is an array
-                if (is_array($data) && isset($data['expires'], $data['value'])) {
+                if (is_array($data) && isset($data['expires'], $data['value']) && is_string($data['value'])) {
                     // if it isn't expired yet
                     if ($data['expires'] > time()) {
                         // return the cached value
-                        return $data['value'];
+                        return unserialize($data['value'], ['allowed_classes' => CacheConfig::getAllowedClasses()]);
 
                         // otherwise it's expired
                     } else {
@@ -188,7 +191,7 @@ if (! trait_exists('\KPT\CacheOPCache')) {
                 }
 
                 // whoopsie... set the last error
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 self::$_last_error = "OPcache get error: " . $e->getMessage();
             }
 
@@ -197,10 +200,10 @@ if (! trait_exists('\KPT\CacheOPCache')) {
         }
 
         /**
-         * Set item to OPcache with improved error handling
+         * Set item to OPcache
          *
-         * Stores an item in OPCache by creating a PHP file with the data
-         * and proper expiration handling.
+         * Stores an item in OPCache by atomically writing a PHP file with the
+         * serialized data and expiration.
          *
          * @since 8.4
          * @author Kevin Pirnie <me@kpirnie.com>
@@ -222,97 +225,48 @@ if (! trait_exists('\KPT\CacheOPCache')) {
             $temp_file = self::getOPcacheFilePath($_key);
             $expires = time() + $_length;
 
-            // Ensure the directory exists
-            $dir = dirname($temp_file);
-            if (! self::ensureOPcacheDirectory($dir)) {
-                self::$_last_error = "OPcache: Cannot create or write to directory: {$dir}";
+            // no private directory, no tier
+            if ($temp_file === null) {
                 return false;
             }
 
-            // Create the PHP content with proper escaping
-            $content = "<?php return " . var_export(['expires' => $expires, 'value' => $_data], true) . ";";
+            // store the value serialized as a plain string literal
+            $content = "<?php return " . var_export(['expires' => $expires, 'value' => serialize($_data)], true) . ";";
+
+            // write to a temp file first so readers never see a partial file
+            $write_file = $temp_file . '.' . bin2hex(random_bytes(6));
 
             // try to write the cache file
             try {
-                // Try to write with exclusive lock first
-                $result = @file_put_contents($temp_file, $content, LOCK_EX);
-
-                // If locking failed, try without lock (some filesystems don't support it)
-                if ($result === false) {
-                    // try without lock
-                    $result = @file_put_contents($temp_file, $content);
-
-                    // last resort - manual locking
-                    if ($result === false) {
-                        $result = self::writeOPcacheFileManual($temp_file, $content);
-                    }
+                // write the temp file and make it private
+                if (@file_put_contents($write_file, $content, LOCK_EX) === false) {
+                    self::$_last_error = "OPcache: Failed to write file: {$write_file}";
+                    return false;
                 }
+                @chmod($write_file, 0600);
 
-                // check if write was successful
-                if ($result !== false) {
-                    // Try to compile to OPcache
-                    if (function_exists('opcache_compile_file')) {
-                        @opcache_compile_file($temp_file);
-                    }
-                    return true;
-
-                    // write failed
-                } else {
-                    self::$_last_error = "OPcache: Failed to write file: {$temp_file}";
+                // swap it into place
+                if (! @rename($write_file, $temp_file)) {
+                    @unlink($write_file);
+                    self::$_last_error = "OPcache: Failed to move file into place: {$temp_file}";
                     return false;
                 }
 
-                // whoopsie... setup the error and return false
-            } catch (\Exception $e) {
+                // drop any stale compiled copy and compile the new one
+                if (function_exists('opcache_invalidate')) {
+                    @opcache_invalidate($temp_file, true);
+                }
+                if (function_exists('opcache_compile_file')) {
+                    @opcache_compile_file($temp_file);
+                }
+
+                // success
+                return true;
+
+                // whoopsie... cleanup, setup the error and return false
+            } catch (\Throwable $e) {
+                @unlink($write_file);
                 self::$_last_error = "OPcache set error: " . $e->getMessage();
-                return false;
-            }
-        }
-
-        /**
-         * Manual file writing with fopen/fwrite as fallback
-         *
-         * Provides a fallback method for writing cache files when
-         * file_put_contents fails or file locking is not supported.
-         *
-         * @since 8.4
-         * @author Kevin Pirnie <me@kpirnie.com>
-         *
-         * @param string $filepath The file path to write to
-         * @param string $content The content to write
-         * @return bool Returns true if successful, false otherwise
-         */
-        private static function writeOPcacheFileManual(string $filepath, string $content): bool
-        {
-
-            // try manual file writing
-            try {
-                // open file for writing
-                $handle = fopen($filepath, 'w');
-                if ($handle === false) {
-                    return false;
-                }
-
-                // Try to get exclusive lock
-                $locked = flock($handle, LOCK_EX);
-
-                // write the content
-                $result = fwrite($handle, $content);
-
-                // release lock if we had one
-                if ($locked) {
-                    flock($handle, LOCK_UN);
-                }
-
-                // close the file
-                fclose($handle);
-
-                // return write success
-                return $result !== false;
-
-                // whoopsie... setup the error and return false
-            } catch (\Exception $e) {
-                self::$_last_error = "OPcache manual write error: " . $e->getMessage();
                 return false;
             }
         }
@@ -336,7 +290,7 @@ if (! trait_exists('\KPT\CacheOPCache')) {
             $temp_file = self::getOPcacheFilePath($_key);
 
             // check if file exists
-            if (file_exists($temp_file)) {
+            if ($temp_file !== null && file_exists($temp_file)) {
                 // Invalidate from OPcache first
                 if (function_exists('opcache_invalidate')) {
                     @opcache_invalidate($temp_file, true);
@@ -366,6 +320,11 @@ if (! trait_exists('\KPT\CacheOPCache')) {
             // Get cache path
             $config = CacheConfig::get('opcache');
             $cache_path = $config['path'] ?? sys_get_temp_dir() . '/kpt_cache/';
+
+            // never include anything from a directory that isn't private
+            if (! self::ensureOPcacheDirectory($cache_path)) {
+                return 0;
+            }
 
             // Use MULTIPLE patterns to catch all possible files
             $patterns = [
@@ -565,6 +524,11 @@ if (! trait_exists('\KPT\CacheOPCache')) {
                     continue;
                 }
 
+                // skip anything we don't own or that others can touch
+                if (! self::isPrivatePath($file)) {
+                    continue;
+                }
+
                 // try to check expiration
                 try {
                     // Include the file to check expiration
@@ -587,7 +551,7 @@ if (! trait_exists('\KPT\CacheOPCache')) {
                     }
 
                     // whoopsie... file might be corrupted, remove it
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     // If we can't read the file, it might be corrupted - remove it
                     if (function_exists('opcache_invalidate')) {
                         @opcache_invalidate($file, true);
@@ -623,6 +587,11 @@ if (! trait_exists('\KPT\CacheOPCache')) {
             $prefix = $config['prefix'] ?? CacheConfig::getGlobalPrefix();
             $cache_path = $config['path'] ?? sys_get_temp_dir() . '/kpt_cache/';
 
+            // never include anything from a directory that isn't private
+            if (! self::ensureOPcacheDirectory($cache_path)) {
+                return [];
+            }
+
             // find all our cache files
             $pattern = $cache_path . $prefix . '*.php';
             $files = glob($pattern);
@@ -637,6 +606,11 @@ if (! trait_exists('\KPT\CacheOPCache')) {
             foreach ($files as $file) {
                 // skip if not a file
                 if (! is_file($file)) {
+                    continue;
+                }
+
+                // skip anything we don't own or that others can touch
+                if (! self::isPrivatePath($file)) {
                     continue;
                 }
 
@@ -670,7 +644,7 @@ if (! trait_exists('\KPT\CacheOPCache')) {
                     $file_details[] = $file_info;
 
                     // whoopsie... add error info to file details
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $file_details[] = [
                         'file' => basename($file),
                         'full_path' => $file,
@@ -743,7 +717,7 @@ if (! trait_exists('\KPT\CacheOPCache')) {
 
             if (! $diagnosis['path_writable']) {
                 $diagnosis['issues'][] = 'Cache directory not writable';
-                $diagnosis['recommendations'][] = "Fix permissions: chmod 755 {$cache_path}";
+                $diagnosis['recommendations'][] = "Fix permissions: chmod 700 {$cache_path}";
             }
 
             // return the diagnosis

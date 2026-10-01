@@ -37,6 +37,7 @@ if (! class_exists('\KPT\CacheConfig')) {
             'path' => null,
             'prefix' => '',
             'allowed_backends' => null, // null means all backends allowed
+            'allowed_classes' => false, // classes allowed when unserializing, false for none
         ];
 
         // default configs for the caching tiers
@@ -250,6 +251,7 @@ if (! class_exists('\KPT\CacheConfig')) {
                 'path' => sys_get_temp_dir() . '/kpt_cache/',
                 'prefix' => '',
                 'allowed_backends' => null,
+                'allowed_classes' => false,
             ];
         }
 
@@ -278,6 +280,28 @@ if (! class_exists('\KPT\CacheConfig')) {
         {
             self::initialize();
             return self::$global_config['allowed_backends'];
+        }
+
+        /**
+         * Set classes allowed when unserializing cached data
+         *
+         * @param array|bool $classes Array of class names, true for all, false for none
+         * @return void
+         */
+        public static function setAllowedClasses(array|bool $classes): void
+        {
+            self::$global_config['allowed_classes'] = $classes;
+        }
+
+        /**
+         * Get classes allowed when unserializing cached data
+         *
+         * @return array|bool Returns allowed class names, true for all, false for none
+         */
+        public static function getAllowedClasses(): array|bool
+        {
+            self::initialize();
+            return self::$global_config['allowed_classes'] ?? false;
         }
 
         /**
