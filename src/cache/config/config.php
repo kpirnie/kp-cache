@@ -376,9 +376,6 @@ if (! class_exists('\KPT\CacheConfig')) {
             // Apply global defaults where backend-specific values are null
             $config = self::applyGlobalDefaults($config, $backend);
 
-            // debug logging
-            Logger::debug("Cache Config Get", ['config' => $config]);
-
             // return the config
             return $config;
         }
@@ -424,7 +421,7 @@ if (! class_exists('\KPT\CacheConfig')) {
             }
 
             // debug logging
-            Logger::debug("Cache Config Set", ['config' => $config]);
+            Logger::debug("Cache Config Set", ['config' => self::redact($config)]);
 
             // return success
             return true;
@@ -452,21 +449,38 @@ if (! class_exists('\KPT\CacheConfig')) {
 
             // loop over each backend
             foreach (array_keys(self::$current_configs) as $backend) {
-                // get the backend config with globals applied
-                $all_configs[$backend] = self::get($backend);
+                // get the backend config with globals applied, minus secrets
+                $all_configs[$backend] = self::redact(self::get($backend));
             }
-
-            // debug logging
-            Logger::debug('Cache Get Full Config', ['config' => [
-                'global' => self::$global_config,
-                'backends' => $all_configs
-            ]]);
 
             // return global and backend configs
             return [
                 'global' => self::$global_config,
                 'backends' => $all_configs
             ];
+        }
+
+        /**
+         * Mask credentials in a configuration array
+         *
+         * @since 8.4
+         * @author Kevin Pirnie <me@kpirnie.com>
+         *
+         * @param array $config The configuration array to mask
+         * @return array Returns the configuration with credentials masked
+         */
+        private static function redact(array $config): array
+        {
+
+            // mask any credential keys that are set
+            foreach (['password', 'username', 'auth'] as $secret) {
+                if (isset($config[$secret]) && $config[$secret] !== '') {
+                    $config[$secret] = '********';
+                }
+            }
+
+            // return the masked config
+            return $config;
         }
 
         /**
