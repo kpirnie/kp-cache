@@ -324,13 +324,13 @@ The package includes CLI tools for cache management. After installation, you can
 
 ```bash
 # Clear all caches
-php vendor/kevinpirnie/kpt-cache/cache/cleaner.php --clear_all
+php vendor/kevinpirnie/kpt-cache/src/cache/cleaner.php --clear_all
 
 # Clear specific tier
-php vendor/kevinpirnie/kpt-cache/cache/cleaner.php --clear_tier=redis
+php vendor/kevinpirnie/kpt-cache/src/cache/cleaner.php --clear_tier=redis
 
 # Cleanup expired entries
-php vendor/kevinpirnie/kpt-cache/cache/cleaner.php --cleanup
+php vendor/kevinpirnie/kpt-cache/src/cache/cleaner.php --cleanup
 ```
 
 ### Integration with Cron
@@ -338,10 +338,10 @@ php vendor/kevinpirnie/kpt-cache/cache/cleaner.php --cleanup
 ```bash
 # Add to crontab for automatic cleanup
 # Cleanup expired entries every hour
-0 * * * * php /path/to/your/app/vendor/kevinpirnie/kpt-cache/cache/cleaner.php --cleanup
+0 * * * * php /path/to/your/app/vendor/kevinpirnie/kpt-cache/src/cache/cleaner.php --cleanup
 
 # Full cache clear daily at 3 AM
-0 3 * * * php /path/to/your/app/vendor/kevinpirnie/kpt-cache/cache/cleaner.php --clear_all
+0 3 * * * php /path/to/your/app/vendor/kevinpirnie/kpt-cache/src/cache/cleaner.php --clear_all
 ```
 
 ## 🔍 Debugging & Troubleshooting
